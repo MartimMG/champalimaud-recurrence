@@ -3,7 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BINARY_VARIABLES,
+  BINARY_SWITCH_VARIABLES,
+  BINARY_DROPDOWN_VARIABLES,
   CATEGORICAL_VARIABLES,
   GRADE_OPTIONS,
   type PatientInput,
@@ -30,9 +31,9 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Binary variables */}
+        {/* Binary switch variables */}
         <div className="space-y-3">
-          {BINARY_VARIABLES.map((v) => (
+          {BINARY_SWITCH_VARIABLES.map((v) => (
             <div
               key={v.key}
               className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5"
@@ -53,6 +54,28 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
             </div>
           ))}
         </div>
+
+        {/* Binary dropdown variables (Side location, Source of referral, Progesterone) */}
+        {BINARY_DROPDOWN_VARIABLES.map((v) => (
+          <div key={v.key} className="space-y-2">
+            <Label className="text-sm font-medium">{v.label}</Label>
+            <Select
+              value={String(input[v.key as keyof PatientInput])}
+              onValueChange={(val) => updateField(v.key as keyof PatientInput, Number(val))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {v.options.map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
 
         {/* Grade */}
         <div className="space-y-2">
