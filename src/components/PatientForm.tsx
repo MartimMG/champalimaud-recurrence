@@ -1,12 +1,14 @@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BINARY_SWITCH_VARIABLES,
   BINARY_DROPDOWN_VARIABLES,
-  CATEGORICAL_VARIABLES,
-  GRADE_OPTIONS,
+  CONTINUOUS_INPUT_VARIABLES,
+  OHE_UI_VARIABLES,
+  NUMERIC_SELECT_VARIABLES,
   type PatientInput,
 } from "@/lib/coxModel";
 
@@ -55,7 +57,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
           ))}
         </div>
 
-        {/* Binary dropdown variables (Side location, Source of referral, Progesterone) */}
+        {/* Binary dropdown variables */}
         {BINARY_DROPDOWN_VARIABLES.map((v) => (
           <div key={v.key} className="space-y-2">
             <Label className="text-sm font-medium">{v.label}</Label>
@@ -77,28 +79,54 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
           </div>
         ))}
 
-        {/* Grade */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Grade at CB</Label>
-          <Select
-            value={String(input.grade)}
-            onValueChange={(v) => updateField("grade", Number(v))}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {GRADE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={String(opt.value)}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Discrete dropdowns (e.g. Grade at CB) */}
+        {NUMERIC_SELECT_VARIABLES.map((field) => (
+          <div key={field.key} className="space-y-2">
+            <Label className="text-sm font-medium">{field.label}</Label>
+            <Select
+              value={String(input[field.key as keyof PatientInput])}
+              onValueChange={(v) => updateField(field.key as keyof PatientInput, Number(v))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {field.options.map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
 
-        {/* Categorical variables */}
-        {CATEGORICAL_VARIABLES.map((cat) => (
+        {/* Continuous inputs (from scaler range in model bundle) */}
+        {CONTINUOUS_INPUT_VARIABLES.map((field) => (
+          <div key={field.key} className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor={field.key}>
+              {field.label}
+            </Label>
+            <Input
+              id={field.key}
+              type="number"
+              min={field.min}
+              max={field.max}
+              step="any"
+              value={input[field.key as keyof PatientInput] as number}
+              onChange={(e) => {
+                const n = parseFloat(e.target.value);
+                updateField(
+                  field.key as keyof PatientInput,
+                  Number.isFinite(n) ? n : field.min
+                );
+              }}
+            />
+          </div>
+        ))}
+
+        {/* One-hot encoded groups (split into columns in the model) */}
+        {OHE_UI_VARIABLES.map((cat) => (
           <div key={cat.key} className="space-y-2">
             <Label className="text-sm font-medium">{cat.label}</Label>
             <Select

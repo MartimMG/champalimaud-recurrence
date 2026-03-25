@@ -1,7 +1,7 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  AreaChart,
   Area,
   XAxis,
   YAxis,
@@ -43,6 +43,138 @@ const categoryConfig: Record<RiskCategory, { label: string; className: string }>
   high: { label: "High", className: "bg-red-100 text-red-800 border-red-200" },
 };
 
+/** Human-readable follow-up from days since baseline (e.g. "3 years and 2 months"). */
+function formatYearsAndMonthsFromDays(days: number): string {
+  const d = Math.max(0, Math.round(days));
+  const y = Math.floor(d / 365);
+  const rem = d - y * 365;
+  const avgMonth = 365 / 12;
+  const m = Math.floor(rem / avgMonth);
+  const parts: string[] = [];
+  if (y > 0) parts.push(`${y} year${y === 1 ? "" : "s"}`);
+  if (m > 0) parts.push(`${m} month${m === 1 ? "" : "s"}`);
+  if (parts.length === 0) {
+    if (d === 0) return "0 days";
+    return `${d} day${d === 1 ? "" : "s"}`;
+  }
+  return parts.join(" and ");
+}
+
+/** Tooltip: Patient risk (blue), High (red), Low (green) — Recharts positions the wrapper. */
+function RiskChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<{ value?: unknown; dataKey?: unknown }>;
+  label?: string | number;
+}) {
+  if (!active || !payload?.length) return null;
+  const map: Record<string, number> = {};
+  for (const p of payload) {
+    const k = p.dataKey != null ? String(p.dataKey) : "";
+    if (k) map[k] = Number(p.value);
+  }
+  const rows = [
+    {
+      key: "risk",
+      text: "Patient risk",
+      dotClass: "bg-blue-500",
+      valueClass: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      key: "thresholdHigh",
+      text: "High",
+      dotClass: "bg-red-500",
+      valueClass: "text-red-600 dark:text-red-400",
+    },
+    {
+      key: "thresholdLow",
+      text: "Low",
+      dotClass: "bg-emerald-500",
+      valueClass: "text-emerald-600 dark:text-emerald-400",
+    },
+  ] as const;
+  return (
+    <div className="rounded-lg border border-border/80 bg-card/95 px-3 py-2.5 text-sm shadow-lg ring-1 ring-black/5 backdrop-blur-sm dark:ring-white/10">
+      <p className="text-muted-foreground mb-2 text-xs font-medium">
+        {label != null && label !== "" ? `${label} years` : ""}
+      </p>
+      {rows.map(({ key, text, dotClass, valueClass }) => (
+        <div key={key} className="flex items-center justify-between gap-8 tabular-nums py-0.5">
+          <span className="flex items-center gap-2 text-foreground">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} aria-hidden />
+            {text}
+          </span>
+          <span className={`font-semibold ${valueClass}`}>
+            {map[key] != null ? `${map[key].toFixed(3)}%` : "—"}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface KeyTimepointCard {
+  timeLabel: string;
+  risk: number;
+  thresholdLow: number;
+  thresholdHigh: number;
+  category: RiskCategory;
+}
+
+/**
+ * If any intermediate risk exists on the curve, show the 4 times (closest to the high line first).
+ * Otherwise show year 1–4 from yearly risk.
+ */
+function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRisk[]): KeyTimepointCard[] {
+  const intermediate = survivalCurve.filter((p) => p.category === "intermediate");
+  if (intermediate.length === 0) {
+    return yearlyRisk
+      .filter((y) => y.year <= 4)
+      .map((y) => ({
+        timeLabel: formatYearsAndMonthsFromDays(y.year * 365),
+        risk: y.risk,
+        thresholdLow: y.thresholdLow,
+        thresholdHigh: y.thresholdHigh,
+        category: y.category,
+      }));
+  }
+
+  const scored = intermediate.map((p) => ({
+    p,
+    gap: p.thresholdHigh - p.risk,
+  }));
+  scored.sort((a, b) => a.gap - b.gap);
+
+  const chosen: SurvivalPoint[] = [];
+  const seenYear = new Set<number>();
+
+  for (const { p } of scored) {
+    if (chosen.length >= 4) break;
+    const y = Math.max(1, Math.round(p.time / 365));
+    if (seenYear.has(y)) continue;
+    seenYear.add(y);
+    chosen.push(p);
+  }
+
+  if (chosen.length < 4) {
+    for (const { p } of scored) {
+      if (chosen.length >= 4) break;
+      if (!chosen.includes(p)) chosen.push(p);
+    }
+  }
+
+  return chosen.slice(0, 4).map((p) => ({
+    timeLabel: formatYearsAndMonthsFromDays(p.time),
+    risk: p.risk,
+    thresholdLow: p.thresholdLow,
+    thresholdHigh: p.thresholdHigh,
+    category: p.category,
+  }));
+}
+
 const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
   const chartData = survivalCurve
     .filter((_, i) => i % 6 === 0 || i === survivalCurve.length - 1)
@@ -52,6 +184,11 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
       thresholdLow: +(d.thresholdLow * 100).toFixed(3),
       thresholdHigh: +(d.thresholdHigh * 100).toFixed(3),
     }));
+
+  const keyTimepoints = useMemo(
+    () => pickKeyTimepoints(survivalCurve, yearlyRisk),
+    [survivalCurve, yearlyRisk]
+  );
 
   return (
     <div className="space-y-4">
@@ -95,21 +232,11 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   domain={[0, "auto"]}
                 />
                 <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    fontSize: 13,
-                  }}
-                  formatter={(value: number, name: string) => {
-                    const labels: Record<string, string> = {
-                      risk: "Patient Risk",
-                      thresholdLow: "Low → Intermediate",
-                      thresholdHigh: "Intermediate → High",
-                    };
-                    return [`${value.toFixed(3)}%`, labels[name] || name];
-                  }}
-                  labelFormatter={(label) => `${label} years`}
+                  cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "4 4" }}
+                  wrapperStyle={{ outline: "none", zIndex: 40 }}
+                  allowEscapeViewBox={{ x: true, y: true }}
+                  animationDuration={200}
+                  content={(props) => <RiskChartTooltip {...props} />}
                 />
                 {[1, 2, 3, 4, 5].map((yr) => (
                   <ReferenceLine
@@ -167,18 +294,23 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
           <CardTitle className="text-lg font-semibold tracking-tight">
             Risk at Key Timepoints
           </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            {survivalCurve.some((p) => p.category === "intermediate")
+              ? "Showing the four times where risk is closest to the high threshold (intermediate zone)."
+              : "Showing cumulative risk at years 1–4."}
+          </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-5 gap-2">
-            {yearlyRisk.map((yr) => {
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {keyTimepoints.map((yr, idx) => {
               const cat = categoryConfig[yr.category];
               return (
                 <div
-                  key={yr.year}
+                  key={`key-tp-${idx}`}
                   className="text-center rounded-lg border border-border/40 bg-muted/30 p-3"
                 >
-                  <div className="text-xs text-muted-foreground font-medium">
-                    Year {yr.year}
+                  <div className="text-xs text-muted-foreground font-medium leading-snug px-0.5">
+                    {yr.timeLabel}
                   </div>
                   <div className="text-xl font-bold text-foreground mt-1">
                     {(yr.risk * 100).toFixed(2)}%

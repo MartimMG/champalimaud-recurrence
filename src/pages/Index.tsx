@@ -21,7 +21,7 @@ const Index = () => {
           </div>
           <div>
             <h1 className="text-base font-semibold tracking-tight text-foreground">
-              Breast Cancer Risk Assessment
+              Breast Cancer Recurrence Risk Assessment
             </h1>
             <p className="text-xs text-muted-foreground">
               Cox proportional hazards model · Dynamic risk prediction
