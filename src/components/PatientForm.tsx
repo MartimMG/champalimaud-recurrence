@@ -22,6 +22,11 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
     onChange({ ...input, [key]: value });
   };
 
+  const binarySwitchIndicators: Partial<Record<(typeof BINARY_SWITCH_VARIABLES)[number]["key"], { off: string; on: string }>> = {
+    progesterone_receptor_status_at_cb: { off: "-", on: "+" },
+    side_location_of_the_lesion: { off: "L", on: "R" },
+  };
+
   return (
     <Card className="border-border/60 shadow-md">
       <CardHeader className="pb-4">
@@ -46,6 +51,11 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
               >
                 {v.label}
               </Label>
+              {binarySwitchIndicators[v.key]?.off && (
+                <span className="text-xs text-muted-foreground tabular-nums min-w-3 text-right">
+                  {binarySwitchIndicators[v.key]!.off}
+                </span>
+              )}
               <Switch
                 id={v.key}
                 checked={input[v.key] === 1}
@@ -53,6 +63,11 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
                   updateField(v.key, checked ? 1 : 0)
                 }
               />
+              {binarySwitchIndicators[v.key]?.on && (
+                <span className="text-xs text-muted-foreground tabular-nums min-w-3">
+                  {binarySwitchIndicators[v.key]!.on}
+                </span>
+              )}
             </div>
           ))}
         </div>

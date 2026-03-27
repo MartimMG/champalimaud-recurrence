@@ -27,12 +27,8 @@ BINARY_VARIABLES = [
     "Adjuvant chemotherapy",
     "Type of invasion at CB",
     "Progesterone receptor status at CB",
-    "Side location of the lesion",
-    "Source of referral",
+    "Side location of the lesion"
 ]
-
-# Grade is shown as a dropdown (1–3); kept out of this list so it is emitted as NUMERIC_SELECT_VARIABLES.
-GRADE_AT_CB = "Grade at CB"
 
 CONTINUOUS_VARIABLES = [
     "Conventional RT fraction",
@@ -43,6 +39,10 @@ CONTINUOUS_VARIABLES = [
 ]
 
 OHE_COLUMNS: dict[str, list[str]] = {
+    "Grade at CB": [
+        "Grade at CB_2.0",
+        "Grade at CB_3.0",
+    ],
     "N (Regional nodes affected)": [
         "N (Regional nodes affected)_1.0",
         "N (Regional nodes affected)_23",
@@ -55,10 +55,6 @@ OHE_COLUMNS: dict[str, list[str]] = {
         "Her2 overexpression (with immunohystochemistry) at CB_1.0",
         "Her2 overexpression (with immunohystochemistry) at CB_2.0",
         "Her2 overexpression (with immunohystochemistry) at CB_3.0",
-    ],
-    "Number identifying the lesion in the patient": [
-        "Number identifying the lesion in the patient_2",
-        "Number identifying the lesion in the patient_34",
     ],
     "Classification with respect to other lesions": [
         "Classification with respect to other lesions_2.0",
@@ -133,33 +129,47 @@ def build_ohe_ui_options(
     """(label, value) for Select; filtered to active columns + sentinels."""
     sset = set(active_suffixes)
 
+    if group_name == "Grade at CB":
+        # Training encoding uses Grade 1 as the implicit baseline (all one-hot cols 0).
+        # Only include suffixes that exist in the loaded model.
+        # No "Unknown" option for Grade in the UI.
+        out = [("1", "1")]
+        if "2.0" in sset:
+            out.append(("2", "2"))
+        if "3.0" in sset:
+            out.append(("3", "3"))
+        return out
+
     if group_name == "N (Regional nodes affected)":
+        # UI semantics:
+        # - "unknown" => all one-hot columns are 0
+        # - "0" => both encoded columns are 0
+        # - "1" => activate the "_1.0" column only (if present in the model)
+        # - "2+" => activate the "_23" column only (if present in the model)
         out = [("Unknown", "unknown"), ("0", "0")]
         if "1.0" in sset:
             out.append(("1", "1"))
         if "23" in sset:
-            out.append(("2 or 3", "23"))
+            # UI shows "2+" but the backend one-hot suffix is "_23".
+            out.append(("2+", "23"))
         return out
     if group_name == "Oestrogen receptor status at CB":
         out = [("Unknown", "unknown")]
         if "0.0" in sset:
-            out.append(("Negative (0)", "0"))
+            out.append(("Negative", "0"))
         if "1.0" in sset:
-            out.append(("Positive (1)", "1"))
+            out.append(("Positive", "1"))
         return out
     if group_name == "Her2 overexpression (with immunohystochemistry) at CB":
-        suf_map = {"1.0": ("1+", "1"), "2.0": ("2+", "2"), "3.0": ("3+", "3")}
+        suf_map = {
+            "1.0": ("Negative (0/1+)", "1"),
+            "2.0": ("Dubious (2+)", "2"),
+            "3.0": ("Positive (3+)", "3"),
+        }
         out = [("Unknown", "unknown")]
         for suf in ("1.0", "2.0", "3.0"):
             if suf in sset:
                 out.append(suf_map[suf])
-        return out
-    if group_name == "Number identifying the lesion in the patient":
-        out = [("Unknown", "unknown"), ("0", "0"), ("1", "1")]
-        if "2" in sset:
-            out.append(("2", "2"))
-        if "34" in sset:
-            out.append(("3 or 4", "34"))
         return out
     if group_name == "Classification with respect to other lesions":
         suf_map = {"2.0": ("Category 2", "2"), "3.0": ("Category 3", "3")}
@@ -170,10 +180,10 @@ def build_ohe_ui_options(
         return out
     if group_name == "Isotype at CB":
         suf_map = {
-            "1.0": ("Ductal (1)", "1"),
-            "2.0": ("Lobular (2)", "2"),
-            "3.0": ("Mixed (3)", "3"),
-            "4.0": ("Other (4)", "4"),
+            "1.0": ("Ductal", "1"),
+            "2.0": ("Lobular", "2"),
+            "3.0": ("Tubular", "3"),
+            "4.0": ("Other", "4"),
         }
         out = [("Unknown", "unknown")]
         for suf in ("1.0", "2.0", "3.0", "4.0"):
@@ -181,11 +191,16 @@ def build_ohe_ui_options(
                 out.append(suf_map[suf])
         return out
     if group_name == "Disease extent":
-        out = [("Unknown", "unknown"), ("0", "0")]
+        # UI semantics:
+        # - "0" => localized
+        # - "1" => multifocal
+        # - "2" => multicentric
+        # - "unknown" => same as 0 (all one-hot columns are 0)
+        out = [("Unknown", "unknown"), ("Localized", "0")]
         if "1.0" in sset:
-            out.append(("1", "1"))
+            out.append(("Multifocal", "1"))
         if "2.0" in sset:
-            out.append(("2", "2"))
+            out.append(("Multicentric", "2"))
         return out
     raise ValueError(f"Unknown OHE group: {group_name}")
 
@@ -198,9 +213,10 @@ def ohe_default_value(group_name: str) -> str:
         "Isotype at CB",
     ):
         return "unknown"
+    if group_name == "Grade at CB":
+        return "1"
     if group_name in (
         "N (Regional nodes affected)",
-        "Number identifying the lesion in the patient",
         "Disease extent",
     ):
         return "0"
@@ -210,6 +226,10 @@ def ohe_default_value(group_name: str) -> str:
 def emit_get_raw_value_body(active_ohe_keys: set[str]) -> str:
     """TypeScript switch cases for OHE groups (by slug inputKey)."""
     blocks: dict[str, str] = {
+        slugify("Grade at CB"): """      if (v === "unknown") return 0;
+      if (s === "2.0") return v === "2" ? 1 : 0;
+      if (s === "3.0") return v === "3" ? 1 : 0;
+      return 0;""",
         slugify("Oestrogen receptor status at CB"): """      if (v === "unknown") return 0;
       if (s === "0.0") return v === "0" ? 1 : 0;
       if (s === "1.0") return v === "1" ? 1 : 0;
@@ -219,13 +239,10 @@ def emit_get_raw_value_body(active_ohe_keys: set[str]) -> str:
       if (s === "2.0") return v === "2" ? 1 : 0;
       if (s === "3.0") return v === "3" ? 1 : 0;
       return 0;""",
-        slugify("N (Regional nodes affected)"): """      if (v === "unknown" || v === "0") return 0;
+        slugify("N (Regional nodes affected)"): """      if (v === "0") return 0;
+      if (v === "unknown") return 0;
       if (s === "1.0") return v === "1" ? 1 : 0;
       if (s === "23") return v === "23" ? 1 : 0;
-      return 0;""",
-        slugify("Number identifying the lesion in the patient"): """      if (v === "unknown" || v === "0" || v === "1") return 0;
-      if (s === "2") return v === "2" ? 1 : 0;
-      if (s === "34") return v === "34" ? 1 : 0;
       return 0;""",
         slugify("Classification with respect to other lesions"): """      if (v === "unknown") return 0;
       if (s === "2.0") return v === "2" ? 1 : 0;
@@ -258,6 +275,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     scaler_state = bundle["scaler"]._state
 
     feature_names = [str(x) for x in np.asarray(cox_state["feature_names_in_"]).tolist()]
+    feature_name_set = set(feature_names)
     name_to_idx = {n: i for i, n in enumerate(feature_names)}
     coefs_raw = np.asarray(cox_state["coef_"]).reshape(-1)
     data_min = np.asarray(scaler_state["data_min_"]).reshape(-1)
@@ -311,23 +329,14 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
         )
         defaults[r["inputKey"]] = float(r["dataMin"])
 
-    if GRADE_AT_CB in nonzero:
-        r = row_for(GRADE_AT_CB)
-        r["inputKey"] = slugify(GRADE_AT_CB)
-        features.append(r)
-        gmin = int(round(r["dataMin"]))
-        gmax = int(round(r["dataMax"]))
-        numeric_select.append(
-            {
-                "key": r["inputKey"],
-                "label": GRADE_AT_CB,
-                "options": [{"label": f"Grade {i}", "value": i} for i in range(gmin, gmax + 1)],
-            }
-        )
-        defaults[r["inputKey"]] = gmin
-
     for group_name, cols in OHE_COLUMNS.items():
-        active_cols = [col for col in cols if col in nonzero]
+        # Show an OHE variable only if at least one category is actually used (non-zero coef).
+        used_cols = [col for col in cols if col in nonzero]
+        if not used_cols:
+            continue
+        # But once shown, include all categories that exist in the model bundle,
+        # even if their coefficient is zero (so the UI can show the full option set).
+        active_cols = [col for col in cols if col in feature_name_set]
         if not active_cols:
             continue
         gkey = slugify(group_name)
