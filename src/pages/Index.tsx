@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientForm from "@/components/PatientForm";
 import RiskCurve from "@/components/RiskCurve";
 import VariableImportance from "@/components/VariableImportance";
+import SurvShapTimeCurves from "@/components/SurvShapTimeCurves";
 import { computeRisk, DEFAULT_INPUT, type PatientInput } from "@/lib/coxModel";
+import { fetchSurvShap } from "@/lib/survshapApi";
 import { Activity, BarChart3 } from "lucide-react";
 
 const Index = () => {
@@ -11,17 +14,34 @@ const Index = () => {
 
   const results = useMemo(() => computeRisk(input), [input]);
 
+  const survQuery = useQuery({
+    queryKey: ["survshap", input],
+    queryFn: () => fetchSurvShap(input),
+    retry: 0,
+  });
+
+  const survshapCumulative =
+    survQuery.data && !survQuery.data.error && survQuery.data.cumulative?.length
+      ? survQuery.data.cumulative
+      : null;
+  const survshapError =
+    survQuery.error instanceof Error
+      ? survQuery.error.message
+      : survQuery.data?.error ?? null;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Activity className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="App logo"
+            className="h-8 w-8 rounded-lg object-cover"
+          />
           <div>
             <h1 className="text-base font-semibold tracking-tight text-foreground">
-              Breast Cancer Recurrence Risk Assessment
+              Breast Cancer Recurrence Risk Calculator
             </h1>
             <p className="text-xs text-muted-foreground">
               Cox proportional hazards model · Dynamic risk prediction
@@ -56,8 +76,20 @@ const Index = () => {
                   yearlyRisk={results.yearlyRisk}
                 />
               </TabsContent>
-              <TabsContent value="importance">
-                <VariableImportance contributions={results.contributions} />
+              <TabsContent value="importance" className="space-y-4">
+                <VariableImportance
+                  contributions={results.contributions}
+                  input={input}
+                  survshapCumulative={survshapCumulative}
+                  survshapLoading={survQuery.isLoading}
+                  survshapError={survshapError}
+                />
+                <SurvShapTimeCurves
+                  loading={survQuery.isLoading}
+                  timeSeries={
+                    survQuery.data && !survQuery.data.error ? survQuery.data.timeSeries : null
+                  }
+                />
               </TabsContent>
             </Tabs>
           </div>

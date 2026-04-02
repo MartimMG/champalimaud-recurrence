@@ -125,12 +125,20 @@ interface KeyTimepointCard {
 }
 
 /**
- * If any intermediate risk exists on the curve, show the 4 times (closest to the high line first).
+ * If any non-low risk exists on the curve, show 3 prioritized points using
+ * threshold-aware deviation rules:
+ * - Above high threshold always gets highest priority.
+ * - If closer to high threshold:
+ *   - above high -> larger deviation first
+ *   - below high -> smaller deviation first
+ * - If closer to low threshold:
+ *   - below low -> larger deviation first
+ *   - above low -> smaller deviation first
  * Otherwise show year 1–4 from yearly risk.
  */
 function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRisk[]): KeyTimepointCard[] {
-  const intermediate = survivalCurve.filter((p) => p.category === "intermediate");
-  if (intermediate.length === 0) {
+  const candidates = survivalCurve.filter((p) => p.category !== "low");
+  if (candidates.length === 0) {
     return yearlyRisk
       .filter((y) => y.year <= 4)
       .map((y) => ({
@@ -142,31 +150,47 @@ function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRis
       }));
   }
 
-  const scored = intermediate.map((p) => ({
+  const scored = candidates.map((p) => ({
     p,
-    gap: p.thresholdHigh - p.risk,
+    score: (() => {
+      const dHigh = p.risk - p.thresholdHigh;
+      const dLow = p.risk - p.thresholdLow;
+      const distHigh = Math.abs(dHigh);
+      const distLow = Math.abs(dLow);
+      const closerToHigh = distHigh <= distLow;
+
+      // Higher score means higher priority.
+      if (dHigh >= 0) return 5000 + dHigh; // above high always first, larger deviation first
+
+      if (closerToHigh) {
+        return 3000 - distHigh; // below high: closest first
+      }
+
+      if (dLow <= 0) return 2000 + Math.abs(dLow); // below low: biggest deviation first
+      return 1000 - distLow; // above low: closest first
+    })(),
   }));
-  scored.sort((a, b) => a.gap - b.gap);
+  scored.sort((a, b) => b.score - a.score);
 
   const chosen: SurvivalPoint[] = [];
   const seenYear = new Set<number>();
 
   for (const { p } of scored) {
-    if (chosen.length >= 4) break;
+    if (chosen.length >= 3) break;
     const y = Math.max(1, Math.round(p.time / 365));
     if (seenYear.has(y)) continue;
     seenYear.add(y);
     chosen.push(p);
   }
 
-  if (chosen.length < 4) {
+  if (chosen.length < 3) {
     for (const { p } of scored) {
-      if (chosen.length >= 4) break;
+      if (chosen.length >= 3) break;
       if (!chosen.includes(p)) chosen.push(p);
     }
   }
 
-  return chosen.slice(0, 4).map((p) => ({
+  return chosen.slice(0, 3).map((p) => ({
     timeLabel: formatYearsAndMonthsFromDays(p.time),
     risk: p.risk,
     thresholdLow: p.thresholdLow,
@@ -176,6 +200,14 @@ function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRis
 }
 
 const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
+  const xAxisTicks = [0.5, 1, 2, 3, 4, 5];
+
+  const formatXAxisTick = (value: number) => {
+    if (value === 0.5) return "6M";
+    if (value === 1) return "12M";
+    return `${value}Y`;
+  };
+
   const chartData = survivalCurve
     .filter((_, i) => i % 6 === 0 || i === survivalCurve.length - 1)
     .map((d) => ({
@@ -198,16 +230,15 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
             Cumulative Risk Over Time
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Patient risk vs. dynamic thresholds —{" "}
-            <span className="text-emerald-600">green</span> = low,{" "}
-            <span className="text-amber-600">amber zone</span> = intermediate,{" "}
+            <span className="text-emerald-600">green</span> = low risk,{" "}
+            <span className="text-amber-600">yellow</span> = intermediate risk,{" "}
             <span className="text-red-600">red</span> = high risk
           </p>
         </CardHeader>
         <CardContent>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 26 }}>
                 <defs>
                   <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
@@ -221,7 +252,11 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="years"
-                  label={{ value: "Years", position: "insideBottomRight", offset: -5, style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } }}
+                  type="number"
+                  domain={[0.5, 5]}
+                  ticks={xAxisTicks}
+                  tickFormatter={formatXAxisTick}
+                  label={{ value: "Time (M=months, Y=years)", position: "bottom", offset: 8, style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } }}
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   stroke="hsl(var(--border))"
                 />
@@ -295,13 +330,13 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
             Risk at Key Timepoints
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            {survivalCurve.some((p) => p.category === "intermediate")
-              ? "Showing the four times where risk is closest to the high threshold (intermediate zone)."
+            {survivalCurve.some((p) => p.category !== "low")
+              ? "Showing the three worse recurrence prognosis timepoints."
               : "Showing cumulative risk at years 1–4."}
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {keyTimepoints.map((yr, idx) => {
               const cat = categoryConfig[yr.category];
               return (

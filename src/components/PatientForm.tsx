@@ -17,6 +17,11 @@ interface PatientFormProps {
   onChange: (input: PatientInput) => void;
 }
 
+function formatUiVariableLabel(label: string): string {
+  if (label === "Radiotherapy (RT) performed") return "Radiotherapy performed";
+  return label;
+}
+
 const PatientForm = ({ input, onChange }: PatientFormProps) => {
   const updateField = (key: keyof PatientInput, value: number | string) => {
     onChange({ ...input, [key]: value });
@@ -49,7 +54,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
                 htmlFor={v.key}
                 className="text-sm font-normal leading-tight cursor-pointer flex-1"
               >
-                {v.label}
+                {formatUiVariableLabel(v.label)}
               </Label>
               {binarySwitchIndicators[v.key]?.off && (
                 <span className="text-xs text-muted-foreground tabular-nums min-w-3 text-right">
@@ -161,6 +166,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
             </Select>
           </div>
         ))}
+        <p className="pt-1 text-xs text-muted-foreground">CB = Core Biopsy</p>
       </CardContent>
     </Card>
   );
