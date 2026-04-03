@@ -228,12 +228,3 @@ export function computeRisk(input: PatientInput) {
   return { survivalCurve, contributions, yearlyRisk, linearPredictor };
 }
 
-/** Raw feature vector for SurvSHAP API (matches FEATURES order, pre-scaling 0–1 encodings). */
-export function encodeRawFeatureVector(input: PatientInput): number[] {
-  return FEATURES.map((spec) => getRawValue(input, spec));
-}
-
-export function buildSurvShapFeatureMeta(): { name: string; group: string }[] {
-  return FEATURES.map((f) => ({ name: f.name, group: f.groupName ?? f.name }));
-}
-

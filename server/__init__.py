@@ -1,1 +1,1 @@
-# SurvSHAP FastAPI service package
+# FastAPI service package

@@ -15,14 +15,10 @@ import {
   type FeatureContribution,
   type PatientInput,
 } from "@/lib/coxModel";
-import type { SurvShapCumulativeRow } from "@/lib/survshapApi";
 
 interface VariableImportanceProps {
   contributions: FeatureContribution[];
   input: PatientInput;
-  survshapCumulative: SurvShapCumulativeRow[] | null;
-  survshapLoading: boolean;
-  survshapError: string | null;
 }
 
 function formatUiVariableLabel(label: string): string {
@@ -47,28 +43,13 @@ function getValueLabelForGroup(displayName: string, input: PatientInput): string
   return "N/A";
 }
 
-const VariableImportance = ({
-  contributions,
-  input,
-  survshapCumulative,
-  survshapLoading,
-  survshapError,
-}: VariableImportanceProps) => {
-  const useSurv = survshapCumulative != null && survshapCumulative.length > 0;
-
-  const chartData = useSurv
-    ? survshapCumulative!.map((row) => ({
-        fullName: formatUiVariableLabel(row.displayName),
-        valueLabel: getValueLabelForGroup(formatUiVariableLabel(row.displayName), input),
-        contribution: +row.importance.toFixed(6),
-        direction: "shap" as const,
-      }))
-    : contributions.map((c) => ({
-        fullName: formatUiVariableLabel(c.name),
-        valueLabel: getValueLabelForGroup(formatUiVariableLabel(c.name), input),
-        contribution: +c.contribution.toFixed(4),
-        direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
-      }));
+const VariableImportance = ({ contributions, input }: VariableImportanceProps) => {
+  const chartData = contributions.map((c) => ({
+    fullName: formatUiVariableLabel(c.name),
+    valueLabel: getValueLabelForGroup(formatUiVariableLabel(c.name), input),
+    contribution: +c.contribution.toFixed(4),
+    direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
+  }));
 
   const valueByName = new Map(chartData.map((d) => [d.fullName, d.valueLabel]));
 
@@ -78,32 +59,14 @@ const VariableImportance = ({
         <CardTitle className="text-lg font-semibold tracking-tight">
           Variable Contributions
         </CardTitle>
-        {survshapLoading && (
-          <p className="text-sm text-muted-foreground">Computing SurvSHAP(t)…</p>
-        )}
-        {survshapError && !survshapLoading && (
-          <p className="text-sm text-destructive">
-            SurvSHAP unavailable ({survshapError.slice(0, 200)}
-            {survshapError.length > 200 ? "…" : ""}). Showing linear model contributions instead.
-          </p>
-        )}
-        {!survshapLoading && useSurv && (
-          <p className="text-sm text-muted-foreground">
-            SurvSHAP(t) cumulative local importance (integral of |SHAP| over time) for this patient.{" "}
-            <span className="text-destructive font-medium">Higher</span> means stronger influence on the
-            predicted survival curve.
-          </p>
-        )}
-        {!survshapLoading && !useSurv && (
-          <p className="text-sm text-muted-foreground">
-            How each variable affects the patient&apos;s risk score (linear predictor).{" "}
-            <span className="text-destructive font-medium">Red</span> increases risk,{" "}
-            <span className="text-accent-foreground font-medium" style={{ color: "hsl(var(--accent))" }}>
-              green
-            </span>{" "}
-            is protective.
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground">
+          How each variable affects the patient&apos;s risk score.{" "}
+          <span className="text-destructive font-medium">Red</span> increases risk,{" "}
+          <span className="text-accent-foreground font-medium" style={{ color: "hsl(var(--accent))" }}>
+            green
+          </span>{" "}
+          is protective.
+        </p>
       </CardHeader>
       <CardContent>
         <div className="h-[380px] w-full">
@@ -119,7 +82,7 @@ const VariableImportance = ({
                 tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 stroke="hsl(var(--border))"
                 label={{
-                  value: useSurv ? "SurvSHAP importance" : "Contribution to risk",
+                  value: "Contribution to risk",
                   position: "insideBottomRight",
                   offset: -5,
                   style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 },
@@ -160,10 +123,8 @@ const VariableImportance = ({
                 }}
                 labelFormatter={(label) => String(label)}
                 formatter={(value: number, _: string, props: { payload: { fullName: string; valueLabel: string } }) => [
-                  useSurv
-                    ? `${Number(value).toFixed(6)} (Value: ${props.payload.valueLabel})`
-                    : `${value > 0 ? "+" : ""}${Number(value).toFixed(4)} (Value: ${props.payload.valueLabel})`,
-                  useSurv ? "SurvSHAP" : "Contribution",
+                  `${value > 0 ? "+" : ""}${Number(value).toFixed(4)} (Value: ${props.payload.valueLabel})`,
+                  "Contribution",
                 ]}
               />
               <Bar dataKey="contribution" radius={[0, 4, 4, 0]} barSize={22}>
@@ -171,9 +132,7 @@ const VariableImportance = ({
                   <Cell
                     key={index}
                     fill={
-                      entry.direction === "shap"
-                        ? "hsl(var(--primary))"
-                        : entry.direction === "risk"
+                      entry.direction === "risk"
                           ? "hsl(var(--destructive))"
                           : "hsl(var(--accent))"
                     }

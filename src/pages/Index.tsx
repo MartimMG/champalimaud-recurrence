@@ -1,33 +1,15 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PatientForm from "@/components/PatientForm";
 import RiskCurve from "@/components/RiskCurve";
 import VariableImportance from "@/components/VariableImportance";
-import SurvShapTimeCurves from "@/components/SurvShapTimeCurves";
 import { computeRisk, DEFAULT_INPUT, type PatientInput } from "@/lib/coxModel";
-import { fetchSurvShap } from "@/lib/survshapApi";
 import { Activity, BarChart3 } from "lucide-react";
 
 const Index = () => {
   const [input, setInput] = useState<PatientInput>(DEFAULT_INPUT);
 
   const results = useMemo(() => computeRisk(input), [input]);
-
-  const survQuery = useQuery({
-    queryKey: ["survshap", input],
-    queryFn: () => fetchSurvShap(input),
-    retry: 0,
-  });
-
-  const survshapCumulative =
-    survQuery.data && !survQuery.data.error && survQuery.data.cumulative?.length
-      ? survQuery.data.cumulative
-      : null;
-  const survshapError =
-    survQuery.error instanceof Error
-      ? survQuery.error.message
-      : survQuery.data?.error ?? null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,19 +59,7 @@ const Index = () => {
                 />
               </TabsContent>
               <TabsContent value="importance" className="space-y-4">
-                <VariableImportance
-                  contributions={results.contributions}
-                  input={input}
-                  survshapCumulative={survshapCumulative}
-                  survshapLoading={survQuery.isLoading}
-                  survshapError={survshapError}
-                />
-                <SurvShapTimeCurves
-                  loading={survQuery.isLoading}
-                  timeSeries={
-                    survQuery.data && !survQuery.data.error ? survQuery.data.timeSeries : null
-                  }
-                />
+                <VariableImportance contributions={results.contributions} input={input} />
               </TabsContent>
             </Tabs>
           </div>

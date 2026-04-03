@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Install SurvSHAP API dependencies in WSL (Linux).
+# Install backend API dependencies in WSL (Linux).
 # Usage from repo root:
 #   chmod +x server/wsl_install.sh && ./server/wsl_install.sh
 
