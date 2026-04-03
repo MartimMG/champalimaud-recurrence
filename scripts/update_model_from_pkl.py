@@ -106,6 +106,21 @@ def to_float_list(arr: Any) -> list[float]:
     return [float(x) for x in np.asarray(arr).tolist()]
 
 
+def find_threshold_average_column(thresholds_df: Any) -> str | None:
+    """Best-effort match for the average/intermediate threshold column in the bundle."""
+    candidates = (
+        "t_avg",
+        "t_average",
+        "t_mean",
+        "t_mid",
+        "t_intermediate",
+    )
+    for name in candidates:
+        if name in thresholds_df:
+            return name
+    return None
+
+
 def fmt_number(x: float) -> str:
     if np.isnan(x):
         return "0"
@@ -376,10 +391,16 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     threshold_times = np.asarray(thresholds_df["time"], dtype=float)
     threshold_low_vals = np.asarray(thresholds_df["t_low"], dtype=float)
     threshold_high_vals = np.asarray(thresholds_df["t_high"], dtype=float)
+    threshold_avg_col = find_threshold_average_column(thresholds_df)
+    if threshold_avg_col is not None:
+        threshold_average_vals = np.asarray(thresholds_df[threshold_avg_col], dtype=float)
+    else:
+        threshold_average_vals = (threshold_low_vals + threshold_high_vals) / 2.0
     t_idx = np.searchsorted(threshold_times, times, side="right") - 1
     t_idx = np.clip(t_idx, 0, len(threshold_times) - 1)
     threshold_low = threshold_low_vals[t_idx].tolist()
     threshold_high = threshold_high_vals[t_idx].tolist()
+    threshold_average = threshold_average_vals[t_idx].tolist()
 
     return {
         "features": features,
@@ -388,6 +409,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
         "baseline_cum_hazards": baseline_cum_hazards,
         "threshold_low": threshold_low,
         "threshold_high": threshold_high,
+        "threshold_average": threshold_average,
         "binary_switch": binary_switch,
         "continuous_inputs": continuous_inputs,
         "numeric_select": numeric_select,
@@ -436,6 +458,7 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append(f"export const BASELINE_CUM_HAZARDS = {ts_array(data['baseline_cum_hazards'])};")
     lines.append(f"export const THRESHOLD_LOW = {ts_array(data['threshold_low'])};")
     lines.append(f"export const THRESHOLD_HIGH = {ts_array(data['threshold_high'])};")
+    lines.append(f"export const THRESHOLD_AVERAGE = {ts_array(data['threshold_average'])};")
     lines.append("")
     lines.append("export const BINARY_SWITCH_VARIABLES = [")
     for v in data["binary_switch"]:
@@ -500,13 +523,15 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("  contribution: number;")
     lines.append("}")
     lines.append("")
-    lines.append('export type RiskCategory = "low" | "intermediate" | "high";')
+    lines.append('export type RiskCategory = "low" | "intermediate" | "average" | "high";')
     lines.append("")
     lines.append("export function getRiskCategory(risk: number, timeIndex: number): RiskCategory {")
-    lines.append('  if (timeIndex < 0 || timeIndex >= THRESHOLD_LOW.length) return "intermediate";')
+    lines.append('  if (timeIndex < 0 || timeIndex >= THRESHOLD_LOW.length) return "average";')
     lines.append('  if (risk <= THRESHOLD_LOW[timeIndex]) return "low";')
+    lines.append('  if (risk <= THRESHOLD_AVERAGE[timeIndex]) return "intermediate";')
+    lines.append('  if (risk < THRESHOLD_HIGH[timeIndex]) return "average";')
     lines.append('  if (risk >= THRESHOLD_HIGH[timeIndex]) return "high";')
-    lines.append('  return "intermediate";')
+    lines.append('  return "average";')
     lines.append("}")
     lines.append("")
     lines.append("function getRawValue(input: PatientInput, spec: FeatureSpec): number {")
@@ -554,6 +579,7 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("      risk,")
     lines.append("      thresholdLow: THRESHOLD_LOW[i],")
     lines.append("      thresholdHigh: THRESHOLD_HIGH[i],")
+    lines.append("      thresholdAverage: THRESHOLD_AVERAGE[i],")
     lines.append("      category: getRiskCategory(risk, i),")
     lines.append("    };")
     lines.append("  });")
@@ -569,6 +595,7 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("      risk,")
     lines.append("      thresholdLow: THRESHOLD_LOW[idx],")
     lines.append("      thresholdHigh: THRESHOLD_HIGH[idx],")
+    lines.append("      thresholdAverage: THRESHOLD_AVERAGE[idx],")
     lines.append("      category: getRiskCategory(risk, idx),")
     lines.append("    };")
     lines.append("  });")

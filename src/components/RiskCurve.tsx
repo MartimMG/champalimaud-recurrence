@@ -20,6 +20,7 @@ interface SurvivalPoint {
   risk: number;
   thresholdLow: number;
   thresholdHigh: number;
+  thresholdAverage: number;
   category: RiskCategory;
 }
 
@@ -29,6 +30,7 @@ interface YearlyRisk {
   risk: number;
   thresholdLow: number;
   thresholdHigh: number;
+  thresholdAverage: number;
   category: RiskCategory;
 }
 
@@ -39,7 +41,8 @@ interface RiskCurveProps {
 
 const categoryConfig: Record<RiskCategory, { label: string; className: string }> = {
   low: { label: "Low", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  intermediate: { label: "Intermediate", className: "bg-amber-100 text-amber-800 border-amber-200" },
+  intermediate: { label: "Intermediate", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  average: { label: "Average", className: "bg-orange-100 text-orange-800 border-orange-200" },
   high: { label: "High", className: "bg-red-100 text-red-800 border-red-200" },
 };
 
@@ -84,6 +87,12 @@ function RiskChartTooltip({
       valueClass: "text-blue-600 dark:text-blue-400",
     },
     {
+      key: "thresholdAverage",
+      text: "Average",
+      dotClass: "bg-amber-500",
+      valueClass: "text-amber-600 dark:text-amber-400",
+    },
+    {
       key: "thresholdHigh",
       text: "High",
       dotClass: "bg-red-500",
@@ -121,6 +130,7 @@ interface KeyTimepointCard {
   risk: number;
   thresholdLow: number;
   thresholdHigh: number;
+  thresholdAverage: number;
   category: RiskCategory;
 }
 
@@ -146,6 +156,7 @@ function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRis
         risk: y.risk,
         thresholdLow: y.thresholdLow,
         thresholdHigh: y.thresholdHigh,
+        thresholdAverage: y.thresholdAverage,
         category: y.category,
       }));
   }
@@ -195,6 +206,7 @@ function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRis
     risk: p.risk,
     thresholdLow: p.thresholdLow,
     thresholdHigh: p.thresholdHigh,
+    thresholdAverage: p.thresholdAverage,
     category: p.category,
   }));
 }
@@ -212,10 +224,27 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
     .filter((_, i) => i % 6 === 0 || i === survivalCurve.length - 1)
     .map((d) => ({
       years: +(d.time / 365).toFixed(2),
-      risk: +(d.risk * 100).toFixed(3),
-      thresholdLow: +(d.thresholdLow * 100).toFixed(3),
-      thresholdHigh: +(d.thresholdHigh * 100).toFixed(3),
+      risk: d.risk * 100,
+      thresholdLow: d.thresholdLow * 100,
+      thresholdHigh: d.thresholdHigh * 100,
+      thresholdAverage: d.thresholdAverage * 100,
+      zoneLow: d.thresholdLow * 100,
+      zoneIntermediate: (d.thresholdAverage - d.thresholdLow) * 100,
+      zoneAverage: (d.thresholdHigh - d.thresholdAverage) * 100,
     }));
+
+  const chartMax = useMemo(() => {
+    const maxValue = survivalCurve.reduce(
+      (acc, p) => Math.max(acc, p.risk, p.thresholdHigh),
+      0
+    );
+    return Math.max(maxValue * 100 * 1.08, 1);
+  }, [survivalCurve]);
+
+  const chartDataWithZones = useMemo(
+    () => chartData.map((p) => ({ ...p, zoneHigh: Math.max(chartMax - p.thresholdHigh, 0) })),
+    [chartData, chartMax]
+  );
 
   const keyTimepoints = useMemo(
     () => pickKeyTimepoints(survivalCurve, yearlyRisk),
@@ -231,24 +260,15 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             <span className="text-emerald-600">green</span> = low risk,{" "}
-            <span className="text-amber-600">yellow</span> = intermediate risk,{" "}
+            <span className="text-yellow-600">yellow</span> = intermediate risk,{" "}
+            <span className="text-orange-600">orange</span> = average risk,{" "}
             <span className="text-red-600">red</span> = high risk
           </p>
         </CardHeader>
         <CardContent>
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 26 }}>
-                <defs>
-                  <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
-                  </linearGradient>
-                  <linearGradient id="thresholdFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.03} />
-                  </linearGradient>
-                </defs>
+              <ComposedChart data={chartDataWithZones} margin={{ top: 10, right: 10, left: 0, bottom: 26 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="years"
@@ -264,7 +284,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   label={{ value: "Risk (%)", angle: -90, position: "insideLeft", offset: 10, style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } }}
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   stroke="hsl(var(--border))"
-                  domain={[0, "auto"]}
+                  domain={[0, chartMax]}
                 />
                 <Tooltip
                   cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "4 4" }}
@@ -282,13 +302,38 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                     strokeOpacity={0.4}
                   />
                 ))}
-                {/* Threshold band */}
+                {/* 4-zone background bands */}
                 <Area
                   type="monotone"
-                  dataKey="thresholdHigh"
+                  dataKey="zoneLow"
                   stroke="none"
-                  fill="url(#thresholdFill)"
-                  fillOpacity={1}
+                  fill="#10b981"
+                  fillOpacity={0.08}
+                  stackId="zones"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="zoneIntermediate"
+                  stroke="none"
+                  fill="#eab308"
+                  fillOpacity={0.08}
+                  stackId="zones"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="zoneAverage"
+                  stroke="none"
+                  fill="#f97316"
+                  fillOpacity={0.1}
+                  stackId="zones"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="zoneHigh"
+                  stroke="none"
+                  fill="#ef4444"
+                  fillOpacity={0.08}
+                  stackId="zones"
                 />
                 {/* Threshold lines */}
                 <Line
@@ -302,6 +347,15 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                 />
                 <Line
                   type="monotone"
+                  dataKey="thresholdAverage"
+                  stroke="#f97316"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  name="thresholdAverage"
+                />
+                <Line
+                  type="monotone"
                   dataKey="thresholdHigh"
                   stroke="#ef4444"
                   strokeWidth={1.5}
@@ -310,12 +364,12 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   name="thresholdHigh"
                 />
                 {/* Patient risk curve */}
-                <Area
+                <Line
                   type="monotone"
                   dataKey="risk"
                   stroke="hsl(var(--primary))"
                   strokeWidth={2.5}
-                  fill="url(#riskGradient)"
+                  dot={false}
                 />
               </ComposedChart>
             </ResponsiveContainer>
@@ -355,6 +409,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   </Badge>
                   <div className="text-[9px] text-muted-foreground mt-1 space-y-0">
                     <div>Low ≤ {(yr.thresholdLow * 100).toFixed(2)}%</div>
+                    <div>Average {(yr.thresholdAverage * 100).toFixed(2)}%</div>
                     <div>High ≥ {(yr.thresholdHigh * 100).toFixed(2)}%</div>
                   </div>
                 </div>
