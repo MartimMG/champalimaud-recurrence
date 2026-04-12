@@ -105,12 +105,22 @@ function RiskChartTooltip({
       valueClass: "text-emerald-600 dark:text-emerald-400",
     },
   ] as const;
+  const sortedRows = [...rows].sort((a, b) => {
+    const va = map[a.key];
+    const vb = map[b.key];
+    const aMissing = va == null || Number.isNaN(va);
+    const bMissing = vb == null || Number.isNaN(vb);
+    if (aMissing && bMissing) return 0;
+    if (aMissing) return 1;
+    if (bMissing) return -1;
+    return vb - va;
+  });
   return (
     <div className="rounded-lg border border-border/80 bg-card/95 px-3 py-2.5 text-sm shadow-lg ring-1 ring-black/5 backdrop-blur-sm dark:ring-white/10">
       <p className="text-muted-foreground mb-2 text-xs font-medium">
         {label != null && label !== "" ? `${label} years` : ""}
       </p>
-      {rows.map(({ key, text, dotClass, valueClass }) => (
+      {sortedRows.map(({ key, text, dotClass, valueClass }) => (
         <div key={key} className="flex items-center justify-between gap-8 tabular-nums py-0.5">
           <span className="flex items-center gap-2 text-foreground">
             <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} aria-hidden />
@@ -234,11 +244,21 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
     }));
 
   const chartMax = useMemo(() => {
-    const maxValue = survivalCurve.reduce(
-      (acc, p) => Math.max(acc, p.risk, p.thresholdHigh),
-      0
-    );
-    return Math.max(maxValue * 100 * 1.08, 1);
+    const maxValue = survivalCurve.reduce((acc, p) => {
+      const localMax = Math.max(
+        Number.isFinite(p.risk) ? p.risk : 0,
+        Number.isFinite(p.thresholdLow) ? p.thresholdLow : 0,
+        Number.isFinite(p.thresholdAverage) ? p.thresholdAverage : 0,
+        Number.isFinite(p.thresholdHigh) ? p.thresholdHigh : 0
+      );
+      return Math.max(acc, localMax);
+    }, 0);
+
+    // Values are expected in [0,1], but tolerate percentage inputs too.
+    const normalizedPercent = maxValue <= 1.5 ? maxValue * 100 : maxValue;
+    const padded = normalizedPercent * 1.08;
+    const bounded = Math.min(Math.max(padded, 1), 100);
+    return Number.isFinite(bounded) ? bounded : 10;
   }, [survivalCurve]);
 
   const chartDataWithZones = useMemo(
@@ -260,8 +280,8 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             <span className="text-emerald-600">green</span> = low risk,{" "}
-            <span className="text-yellow-600">yellow</span> = intermediate risk,{" "}
-            <span className="text-orange-600">orange</span> = average risk,{" "}
+            <span className="text-yellow-600">yellow</span> = average risk,{" "}
+            <span className="text-orange-600">orange</span> = intermediate risk,{" "}
             <span className="text-red-600">red</span> = high risk
           </p>
         </CardHeader>
@@ -282,6 +302,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                 />
                 <YAxis
                   label={{ value: "Risk (%)", angle: -90, position: "insideLeft", offset: 10, style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } }}
+                  tickFormatter={(value) => Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 })}
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   stroke="hsl(var(--border))"
                   domain={[0, chartMax]}
@@ -309,6 +330,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   stroke="none"
                   fill="#10b981"
                   fillOpacity={0.08}
+                  activeDot={false}
                   stackId="zones"
                 />
                 <Area
@@ -317,6 +339,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   stroke="none"
                   fill="#eab308"
                   fillOpacity={0.08}
+                  activeDot={false}
                   stackId="zones"
                 />
                 <Area
@@ -325,6 +348,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   stroke="none"
                   fill="#f97316"
                   fillOpacity={0.1}
+                  activeDot={false}
                   stackId="zones"
                 />
                 <Area
@@ -333,6 +357,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
                   stroke="none"
                   fill="#ef4444"
                   fillOpacity={0.08}
+                  activeDot={false}
                   stackId="zones"
                 />
                 {/* Threshold lines */}

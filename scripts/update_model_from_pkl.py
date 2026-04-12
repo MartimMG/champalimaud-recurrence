@@ -45,7 +45,7 @@ OHE_COLUMNS: dict[str, list[str]] = {
     ],
     "N (Regional nodes affected)": [
         "N (Regional nodes affected)_1.0",
-        "N (Regional nodes affected)_23",
+        "N (Regional nodes affected)_23.0",
     ],
     "Oestrogen receptor status at CB": [
         "Oestrogen receptor status at CB_0.0",
@@ -61,7 +61,6 @@ OHE_COLUMNS: dict[str, list[str]] = {
         "Classification with respect to other lesions_3.0",
     ],
     "Isotype at CB": [
-        "Isotype at CB_1.0",
         "Isotype at CB_2.0",
         "Isotype at CB_3.0",
         "Isotype at CB_4.0",
@@ -157,15 +156,13 @@ def build_ohe_ui_options(
 
     if group_name == "N (Regional nodes affected)":
         # UI semantics:
-        # - "unknown" => all one-hot columns are 0
-        # - "0" => both encoded columns are 0
+        # - "0" => baseline (all one-hot columns are 0)
         # - "1" => activate the "_1.0" column only (if present in the model)
-        # - "2+" => activate the "_23" column only (if present in the model)
-        out = [("Unknown", "unknown"), ("0", "0")]
+        # - "2+" => activate the "_23.0" column only (if present in the model)
+        out = [("0", "0")]
         if "1.0" in sset:
             out.append(("1", "1"))
-        if "23" in sset:
-            # UI shows "2+" but the backend one-hot suffix is "_23".
+        if "23.0" in sset:
             out.append(("2+", "23"))
         return out
     if group_name == "Oestrogen receptor status at CB":
@@ -195,13 +192,12 @@ def build_ohe_ui_options(
         return out
     if group_name == "Isotype at CB":
         suf_map = {
-            "1.0": ("Ductal", "1"),
             "2.0": ("Lobular", "2"),
             "3.0": ("Tubular", "3"),
             "4.0": ("Other", "4"),
         }
-        out = [("Unknown", "unknown")]
-        for suf in ("1.0", "2.0", "3.0", "4.0"):
+        out = [("Ductal", "1")]
+        for suf in ("2.0", "3.0", "4.0"):
             if suf in sset:
                 out.append(suf_map[suf])
         return out
@@ -227,7 +223,7 @@ def ohe_default_value(group_name: str) -> str:
         "Classification with respect to other lesions",
         "Isotype at CB",
     ):
-        return "unknown"
+        return "1"
     if group_name == "Grade at CB":
         return "1"
     if group_name in (
@@ -255,20 +251,18 @@ def emit_get_raw_value_body(active_ohe_keys: set[str]) -> str:
       if (s === "3.0") return v === "3" ? 1 : 0;
       return 0;""",
         slugify("N (Regional nodes affected)"): """      if (v === "0") return 0;
-      if (v === "unknown") return 0;
       if (s === "1.0") return v === "1" ? 1 : 0;
-      if (s === "23") return v === "23" ? 1 : 0;
+        if (s === "23.0") return v === "23" ? 1 : 0;
       return 0;""",
         slugify("Classification with respect to other lesions"): """      if (v === "unknown") return 0;
       if (s === "2.0") return v === "2" ? 1 : 0;
       if (s === "3.0") return v === "3" ? 1 : 0;
       return 0;""",
-        slugify("Isotype at CB"): """      if (v === "unknown") return 0;
-      if (s === "1.0") return v === "1" ? 1 : 0;
-      if (s === "2.0") return v === "2" ? 1 : 0;
-      if (s === "3.0") return v === "3" ? 1 : 0;
-      if (s === "4.0") return v === "4" ? 1 : 0;
-      return 0;""",
+                slugify("Isotype at CB"): """      if (v === "unknown") return 0;
+            if (s === "2.0") return v === "2" ? 1 : 0;
+            if (s === "3.0") return v === "3" ? 1 : 0;
+            if (s === "4.0") return v === "4" ? 1 : 0;
+            return 0;""",
         slugify("Disease extent"): """      if (v === "unknown" || v === "0") return 0;
       if (s === "1.0") return v === "1" ? 1 : 0;
       if (s === "2.0") return v === "2" ? 1 : 0;

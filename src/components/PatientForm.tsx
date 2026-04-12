@@ -134,6 +134,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
               max={field.max}
               step="any"
               value={input[field.key as keyof PatientInput] as number}
+              onFocus={(e) => e.currentTarget.select()}
               onChange={(e) => {
                 const n = parseFloat(e.target.value);
                 updateField(

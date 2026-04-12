@@ -43,6 +43,29 @@ function getValueLabelForGroup(displayName: string, input: PatientInput): string
   return "N/A";
 }
 
+function wrapTickLabel(name: string, maxLengthPerLine = 28): string[] {
+  if (name.length <= maxLengthPerLine) return [name];
+
+  const words = name.split(" ");
+  if (words.length === 1) return [name];
+
+  let firstLine = "";
+  let secondLine = "";
+
+  for (const word of words) {
+    const candidate = firstLine ? `${firstLine} ${word}` : word;
+    if (candidate.length <= maxLengthPerLine) {
+      firstLine = candidate;
+    } else {
+      secondLine = secondLine ? `${secondLine} ${word}` : word;
+    }
+  }
+
+  if (!secondLine) return [name];
+
+  return [firstLine, secondLine];
+}
+
 const VariableImportance = ({ contributions, input }: VariableImportanceProps) => {
   const chartData = contributions.map((c) => ({
     fullName: formatUiVariableLabel(c.name),
@@ -91,25 +114,44 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
               <YAxis
                 type="category"
                 dataKey="fullName"
-                width={340}
+                width={300}
                 interval={0}
                 stroke="hsl(var(--border))"
                 tick={({ x, y, payload }) => {
                   const name = String(payload?.value ?? "");
                   const value = valueByName.get(name) ?? "N/A";
+                  const lines = wrapTickLabel(name);
+                  const lineHeight = 12;
+                  const nameX = x - 120;
+                  const valueX = x - 114;
                   return (
-                    <text
-                      x={x}
-                      y={y}
-                      fill="hsl(var(--foreground))"
-                      fontSize={10}
-                      textAnchor="end"
-                      dominantBaseline="central"
-                    >
-                      <tspan>{`${name} [`}</tspan>
-                      <tspan fontWeight={700}>{value}</tspan>
-                      <tspan>]</tspan>
-                    </text>
+                    <g>
+                      <text
+                        x={nameX}
+                        y={y}
+                        fill="hsl(var(--foreground))"
+                        fontSize={10}
+                        textAnchor="end"
+                        dominantBaseline="central"
+                      >
+                        {lines.map((line, index) => (
+                          <tspan key={`${line}-${index}`} x={nameX} dy={index === 0 ? -(lines.length - 1) * lineHeight / 2 : lineHeight}>
+                            {line}
+                          </tspan>
+                        ))}
+                      </text>
+                      <text
+                        x={valueX}
+                        y={y}
+                        fill="hsl(var(--foreground))"
+                        fontSize={10}
+                        fontWeight={700}
+                        textAnchor="start"
+                        dominantBaseline="central"
+                      >
+                        [{value}]
+                      </text>
+                    </g>
                   );
                 }}
                 tickLine={false}
