@@ -144,84 +144,83 @@ interface KeyTimepointCard {
   category: RiskCategory;
 }
 
+const KEY_TIMEPOINT_START_DAYS = 0.5 * 365.25;
+const KEY_TIMEPOINT_GAP_DAYS = 0.5 * 365.25;
+
 /**
- * If any non-low risk exists on the curve, show 3 prioritized points using
- * threshold-aware deviation rules:
- * - Above high threshold always gets highest priority.
- * - If closer to high threshold:
- *   - above high -> larger deviation first
- *   - below high -> smaller deviation first
- * - If closer to low threshold:
- *   - below low -> larger deviation first
- *   - above low -> smaller deviation first
- * Otherwise show year 1–4 from yearly risk.
+ * Pick up to two worst timepoints after 0.5 years, keeping them chronological.
+ * The selection prefers, in order:
+ * - the first observed crossing above the high threshold,
+ * - the closest point below the high threshold,
+ * - the closest point below the average threshold.
+ * The second point must be at least 0.5 years after the first.
  */
-function pickKeyTimepoints(survivalCurve: SurvivalPoint[], yearlyRisk: YearlyRisk[]): KeyTimepointCard[] {
-  const candidates = survivalCurve.filter((p) => p.category !== "low");
-  if (candidates.length === 0) {
-    return yearlyRisk
-      .filter((y) => y.year <= 4)
-      .map((y) => ({
-        timeLabel: formatYearsAndMonthsFromDays(y.year * 365),
-        risk: y.risk,
-        thresholdLow: y.thresholdLow,
-        thresholdHigh: y.thresholdHigh,
-        thresholdAverage: y.thresholdAverage,
-        category: y.category,
-      }));
-  }
+function pickKeyTimepoints(survivalCurve: SurvivalPoint[]): KeyTimepointCard[] {
+  const eligiblePoints = survivalCurve
+    .filter((p) => p.category !== "low" && p.time >= KEY_TIMEPOINT_START_DAYS)
+    .sort((a, b) => a.time - b.time);
 
-  const scored = candidates.map((p) => ({
-    p,
-    score: (() => {
-      const dHigh = p.risk - p.thresholdHigh;
-      const dLow = p.risk - p.thresholdLow;
-      const distHigh = Math.abs(dHigh);
-      const distLow = Math.abs(dLow);
-      const closerToHigh = distHigh <= distLow;
+  if (eligiblePoints.length === 0) return [];
 
-      // Higher score means higher priority.
-      if (dHigh >= 0) return 5000 + dHigh; // above high always first, larger deviation first
+  const pickWorstFallbackPoint = (points: SurvivalPoint[]) => {
+    if (points.length === 0) return undefined;
 
-      if (closerToHigh) {
-        return 3000 - distHigh; // below high: closest first
-      }
+    const closestBelowHigh = points
+      .filter((point) => point.risk < point.thresholdHigh)
+      .reduce<SurvivalPoint | undefined>((best, point) => {
+        if (!best) return point;
+        const bestDistance = best.thresholdHigh - best.risk;
+        const currentDistance = point.thresholdHigh - point.risk;
+        if (currentDistance < bestDistance) return point;
+        if (currentDistance > bestDistance) return best;
+        return point.time < best.time ? point : best;
+      }, undefined);
 
-      if (dLow <= 0) return 2000 + Math.abs(dLow); // below low: biggest deviation first
-      return 1000 - distLow; // above low: closest first
-    })(),
-  }));
-  scored.sort((a, b) => b.score - a.score);
-
-  const chosen: SurvivalPoint[] = [];
-  const seenYear = new Set<number>();
-
-  for (const { p } of scored) {
-    if (chosen.length >= 3) break;
-    const y = Math.max(1, Math.round(p.time / 365));
-    if (seenYear.has(y)) continue;
-    seenYear.add(y);
-    chosen.push(p);
-  }
-
-  if (chosen.length < 3) {
-    for (const { p } of scored) {
-      if (chosen.length >= 3) break;
-      if (!chosen.includes(p)) chosen.push(p);
+    if (closestBelowHigh) {
+      return closestBelowHigh;
     }
-  }
 
-  return chosen.slice(0, 3).map((p) => ({
-    timeLabel: formatYearsAndMonthsFromDays(p.time),
-    risk: p.risk,
-    thresholdLow: p.thresholdLow,
-    thresholdHigh: p.thresholdHigh,
-    thresholdAverage: p.thresholdAverage,
-    category: p.category,
-  }));
+    const closestBelowAverage = points
+      .filter((point) => point.risk < point.thresholdAverage)
+      .reduce<SurvivalPoint | undefined>((best, point) => {
+        if (!best) return point;
+        const bestDistance = best.thresholdAverage - best.risk;
+        const currentDistance = point.thresholdAverage - point.risk;
+        if (currentDistance < bestDistance) return point;
+        if (currentDistance > bestDistance) return best;
+        return point.time < best.time ? point : best;
+      }, undefined);
+
+    return closestBelowAverage;
+  };
+
+  const highCrossings = eligiblePoints.filter((point, index) => {
+    if (point.risk < point.thresholdHigh) return false;
+    if (index === 0) return true;
+    return eligiblePoints[index - 1].risk < eligiblePoints[index - 1].thresholdHigh;
+  });
+
+  const firstPoint = highCrossings[0] ?? pickWorstFallbackPoint(eligiblePoints);
+  if (!firstPoint) return [];
+
+  const laterPoints = eligiblePoints.filter((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
+  const secondHighCrossing = highCrossings.find((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
+  const secondPoint = secondHighCrossing ?? pickWorstFallbackPoint(laterPoints);
+
+  return [firstPoint, secondPoint]
+    .filter((point): point is SurvivalPoint => Boolean(point))
+    .sort((a, b) => a.time - b.time)
+    .map((point) => ({
+      timeLabel: formatYearsAndMonthsFromDays(point.time),
+      risk: point.risk,
+      thresholdLow: point.thresholdLow,
+      thresholdHigh: point.thresholdHigh,
+      thresholdAverage: point.thresholdAverage,
+      category: point.category,
+    }));
 }
 
-const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
+const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
   const xAxisTicks = [0.5, 1, 2, 3, 4, 5];
 
   const formatXAxisTick = (value: number) => {
@@ -266,10 +265,7 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
     [chartData, chartMax]
   );
 
-  const keyTimepoints = useMemo(
-    () => pickKeyTimepoints(survivalCurve, yearlyRisk),
-    [survivalCurve, yearlyRisk]
-  );
+  const keyTimepoints = useMemo(() => pickKeyTimepoints(survivalCurve), [survivalCurve]);
 
   return (
     <div className="space-y-4">
@@ -409,38 +405,44 @@ const RiskCurve = ({ survivalCurve, yearlyRisk }: RiskCurveProps) => {
             Risk at Key Timepoints
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            {survivalCurve.some((p) => p.category !== "low")
-              ? "Showing the three worse recurrence prognosis timepoints."
-              : "Showing cumulative risk at years 1–4."}
+            {keyTimepoints.length > 0
+              ? "Showing the two worst recurrence prognosis timepoints in chronological order."
+              : "Patient with low risk."}
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {keyTimepoints.map((yr, idx) => {
-              const cat = categoryConfig[yr.category];
-              return (
-                <div
-                  key={`key-tp-${idx}`}
-                  className="text-center rounded-lg border border-border/40 bg-muted/30 p-3"
-                >
-                  <div className="text-xs text-muted-foreground font-medium leading-snug px-0.5">
-                    {yr.timeLabel}
+          {keyTimepoints.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {keyTimepoints.map((yr, idx) => {
+                const cat = categoryConfig[yr.category];
+                return (
+                  <div
+                    key={`key-tp-${idx}`}
+                    className="text-center rounded-lg border border-border/40 bg-muted/30 p-3"
+                  >
+                    <div className="text-xs text-muted-foreground font-medium leading-snug px-0.5">
+                      {yr.timeLabel}
+                    </div>
+                    <div className="text-xl font-bold text-foreground mt-1">
+                      {(yr.risk * 100).toFixed(2)}%
+                    </div>
+                    <Badge variant="outline" className={`mt-1.5 text-[10px] px-1.5 py-0 ${cat.className}`}>
+                      {cat.label}
+                    </Badge>
+                    <div className="text-[9px] text-muted-foreground mt-1 space-y-0">
+                      <div>Low ≤ {(yr.thresholdLow * 100).toFixed(2)}%</div>
+                      <div>Average {(yr.thresholdAverage * 100).toFixed(2)}%</div>
+                      <div>High ≥ {(yr.thresholdHigh * 100).toFixed(2)}%</div>
+                    </div>
                   </div>
-                  <div className="text-xl font-bold text-foreground mt-1">
-                    {(yr.risk * 100).toFixed(2)}%
-                  </div>
-                  <Badge variant="outline" className={`mt-1.5 text-[10px] px-1.5 py-0 ${cat.className}`}>
-                    {cat.label}
-                  </Badge>
-                  <div className="text-[9px] text-muted-foreground mt-1 space-y-0">
-                    <div>Low ≤ {(yr.thresholdLow * 100).toFixed(2)}%</div>
-                    <div>Average {(yr.thresholdAverage * 100).toFixed(2)}%</div>
-                    <div>High ≥ {(yr.thresholdHigh * 100).toFixed(2)}%</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-border/40 bg-muted/30 p-4 text-center text-sm text-muted-foreground">
+              Patient with low risk.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
