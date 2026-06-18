@@ -22,7 +22,8 @@ interface VariableImportanceProps {
 }
 
 function formatUiVariableLabel(label: string): string {
-  if (label === "Radiotherapy (RT) performed") return "Radiotherapy performed";
+  if (label === "Radiotherapy (RT) performed") return "Radiotherapy";
+  if (label === "Endocrine therapy performed") return "Biological therapy";
   return label;
 }
 
