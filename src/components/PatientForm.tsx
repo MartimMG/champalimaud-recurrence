@@ -20,6 +20,9 @@ interface PatientFormProps {
 function formatUiVariableLabel(label: string): string {
   if (label === "Radiotherapy (RT) performed") return "Radiotherapy";
   if (label === "Endocrine therapy performed") return "Biological therapy";
+  if (label === "Treatment in association with chemotherapy") {
+    return "Hormone therapy associated with chemotherapy protocol";
+  }
   return label;
 }
 
