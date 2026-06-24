@@ -23,6 +23,9 @@ function formatUiVariableLabel(label: string): string {
   if (label === "Treatment in association with chemotherapy") {
     return "Hormone therapy associated with chemotherapy protocol";
   }
+  if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
+  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status at CB";
+  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry) at CB";
   return label;
 }
 
@@ -84,7 +87,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
         {/* Binary dropdown variables */}
         {BINARY_DROPDOWN_VARIABLES.map((v) => (
           <div key={v.key} className="space-y-2">
-            <Label className="text-sm font-medium">{v.label}</Label>
+            <Label className="text-sm font-medium">{formatUiVariableLabel(v.label)}</Label>
             <Select
               value={String(input[v.key as keyof PatientInput])}
               onValueChange={(val) => updateField(v.key as keyof PatientInput, Number(val))}
@@ -106,7 +109,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
         {/* Discrete dropdowns (e.g. Grade at CB) */}
         {NUMERIC_SELECT_VARIABLES.map((field) => (
           <div key={field.key} className="space-y-2">
-            <Label className="text-sm font-medium">{field.label}</Label>
+            <Label className="text-sm font-medium">{formatUiVariableLabel(field.label)}</Label>
             <Select
               value={String(input[field.key as keyof PatientInput])}
               onValueChange={(v) => updateField(field.key as keyof PatientInput, Number(v))}
@@ -153,7 +156,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
         {/* One-hot encoded groups (split into columns in the model) */}
         {OHE_UI_VARIABLES.map((cat) => (
           <div key={cat.key} className="space-y-2">
-            <Label className="text-sm font-medium">{cat.label}</Label>
+            <Label className="text-sm font-medium">{formatUiVariableLabel(cat.label)}</Label>
             <Select
               value={input[cat.key] as string}
               onValueChange={(v) => updateField(cat.key as keyof PatientInput, v)}

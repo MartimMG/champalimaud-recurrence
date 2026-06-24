@@ -287,6 +287,8 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     feature_name_set = set(feature_names)
     name_to_idx = {n: i for i, n in enumerate(feature_names)}
     coefs_raw = np.asarray(cox_state["coef_"]).reshape(-1)
+    scaler_feature_names = [str(x) for x in np.asarray(scaler_state["feature_names_in_"]).tolist()]
+    scaler_name_to_idx = {n: i for i, n in enumerate(scaler_feature_names)}
     data_min = np.asarray(scaler_state["data_min_"]).reshape(-1)
     data_max = np.asarray(scaler_state["data_max_"]).reshape(-1)
     scaler_scale = np.asarray(scaler_state["scale_"]).reshape(-1)
@@ -294,13 +296,24 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
 
     def row_for(name: str) -> dict[str, Any]:
         i = name_to_idx[name]
+        scaler_idx = scaler_name_to_idx.get(name)
+        if scaler_idx is None:
+            data_min_value = 0.0
+            data_max_value = 1.0
+            scaler_scale_value = 1.0
+            scaler_min_value = 0.0
+        else:
+            data_min_value = float(data_min[scaler_idx])
+            data_max_value = float(data_max[scaler_idx])
+            scaler_scale_value = float(scaler_scale[scaler_idx])
+            scaler_min_value = float(scaler_min[scaler_idx])
         return {
             "name": name,
             "coef": float(coefs_raw[i]),
-            "dataMin": float(data_min[i]),
-            "dataMax": float(data_max[i]),
-            "scalerScale": float(scaler_scale[i]),
-            "scalerMin": float(scaler_min[i]),
+            "dataMin": data_min_value,
+            "dataMax": data_max_value,
+            "scalerScale": scaler_scale_value,
+            "scalerMin": scaler_min_value,
         }
 
     nonzero = {feature_names[i] for i in range(len(feature_names)) if abs(float(coefs_raw[i])) > 1e-12}

@@ -27,6 +27,9 @@ function formatUiVariableLabel(label: string): string {
   if (label === "Treatment in association with chemotherapy") {
     return "Hormone therapy associated with chemotherapy protocol";
   }
+  if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
+  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status at CB";
+  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry) at CB";
   return label;
 }
 
@@ -37,7 +40,7 @@ function getValueLabelForGroup(displayName: string, input: PatientInput): string
     return input[binary.key] === 1 ? "Yes" : "No";
   }
 
-  const ohe = OHE_UI_VARIABLES.find((v) => v.label === displayName);
+  const ohe = OHE_UI_VARIABLES.find((v) => formatUiVariableLabel(v.label) === displayName);
   if (ohe) {
     const selected = String(input[ohe.key]);
     const match = ohe.options.find((opt) => opt.value === selected);
@@ -101,7 +104,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              margin={{ top: 5, right: 20, left: 16, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
               <XAxis
@@ -118,23 +121,23 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
               <YAxis
                 type="category"
                 dataKey="fullName"
-                width={300}
+                width={320}
                 interval={0}
                 stroke="hsl(var(--border))"
                 tick={({ x, y, payload }) => {
                   const name = String(payload?.value ?? "");
                   const value = valueByName.get(name) ?? "N/A";
                   const lines = wrapTickLabel(name);
-                  const lineHeight = 12;
-                  const nameX = x - 120;
-                  const valueX = x - 114;
+                  const lineHeight = 15;
+                  const nameX = x - 128;
+                  const valueX = x - 120;
                   return (
                     <g>
                       <text
                         x={nameX}
                         y={y}
                         fill="hsl(var(--foreground))"
-                        fontSize={10}
+                        fontSize={12}
                         textAnchor="end"
                         dominantBaseline="central"
                       >
@@ -148,7 +151,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
                         x={valueX}
                         y={y}
                         fill="hsl(var(--foreground))"
-                        fontSize={10}
+                        fontSize={11}
                         fontWeight={700}
                         textAnchor="start"
                         dominantBaseline="central"

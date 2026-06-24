@@ -41,8 +41,8 @@ interface RiskCurveProps {
 
 const categoryConfig: Record<RiskCategory, { label: string; className: string }> = {
   low: { label: "Low", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  intermediate: { label: "Intermediate", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-  average: { label: "Average", className: "bg-orange-100 text-orange-800 border-orange-200" },
+  intermediate: { label: "Below average", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  average: { label: "Above average", className: "bg-orange-100 text-orange-800 border-orange-200" },
   high: { label: "High", className: "bg-red-100 text-red-800 border-red-200" },
 };
 
@@ -275,10 +275,10 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
             Cumulative Risk Over Time
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            <span className="text-emerald-600">green</span> = low risk,{" "}
-            <span className="text-yellow-600">yellow</span> = average risk,{" "}
-            <span className="text-orange-600">orange</span> = intermediate risk,{" "}
-            <span className="text-red-600">red</span> = high risk
+            <span className="text-emerald-600">green</span> = low, {" "}
+            <span className="text-yellow-600">yellow</span> = below average, {" "}
+            <span className="text-orange-600">orange</span> = above average, {" "}
+            <span className="text-red-600">red</span> = high
           </p>
         </CardHeader>
         <CardContent>
@@ -406,7 +406,7 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
           </CardTitle>
           <p className="text-xs text-muted-foreground">
             {keyTimepoints.length > 0
-              ? "Showing the two worst recurrence prognosis timepoints in chronological order."
+              ? "Showing the two worst regional recurrence prognosis timepoints in chronological order."
               : "Patient with low risk."}
           </p>
         </CardHeader>
@@ -420,19 +420,14 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
                     key={`key-tp-${idx}`}
                     className="text-center rounded-lg border border-border/40 bg-muted/30 p-3"
                   >
-                    <div className="text-xs text-muted-foreground font-medium leading-snug px-0.5">
-                      {yr.timeLabel}
-                    </div>
                     <div className="text-xl font-bold text-foreground mt-1">
                       {(yr.risk * 100).toFixed(2)}%
                     </div>
                     <Badge variant="outline" className={`mt-1.5 text-[10px] px-1.5 py-0 ${cat.className}`}>
                       {cat.label}
                     </Badge>
-                    <div className="text-[9px] text-muted-foreground mt-1 space-y-0">
-                      <div>Low ≤ {(yr.thresholdLow * 100).toFixed(2)}%</div>
-                      <div>Average {(yr.thresholdAverage * 100).toFixed(2)}%</div>
-                      <div>High ≥ {(yr.thresholdHigh * 100).toFixed(2)}%</div>
+                    <div className="text-xs text-muted-foreground font-medium leading-snug px-0.5">
+                      {yr.timeLabel}
                     </div>
                   </div>
                 );
