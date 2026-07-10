@@ -48,6 +48,7 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
         <p className="text-sm text-muted-foreground">
           Toggle or select the clinical variables for risk assessment
         </p>
+        <p className="text-xs text-muted-foreground">CB = Core Biopsy</p>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Binary switch variables */}
@@ -174,7 +175,6 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
             </Select>
           </div>
         ))}
-        <p className="pt-1 text-xs text-muted-foreground">CB = Core Biopsy</p>
       </CardContent>
     </Card>
   );

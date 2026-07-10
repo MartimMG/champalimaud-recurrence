@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+// "Risk at Key Timepoints" section disabled — see matching comment blocks below to re-enable.
+// import { Badge } from "@/components/ui/badge";
 import {
   Area,
   XAxis,
@@ -39,12 +40,13 @@ interface RiskCurveProps {
   yearlyRisk: YearlyRisk[];
 }
 
-const categoryConfig: Record<RiskCategory, { label: string; className: string }> = {
-  low: { label: "Low", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  intermediate: { label: "Below average", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-  average: { label: "Above average", className: "bg-orange-100 text-orange-800 border-orange-200" },
-  high: { label: "High", className: "bg-red-100 text-red-800 border-red-200" },
-};
+// Used only by the disabled "Risk at Key Timepoints" card below.
+// const categoryConfig: Record<RiskCategory, { label: string; className: string }> = {
+//   low: { label: "Low", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+//   intermediate: { label: "Below average", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+//   average: { label: "Above average", className: "bg-orange-100 text-orange-800 border-orange-200" },
+//   high: { label: "High", className: "bg-red-100 text-red-800 border-red-200" },
+// };
 
 /** Human-readable follow-up from days since baseline (e.g. "3 years and 2 months"). */
 function formatYearsAndMonthsFromDays(days: number): string {
@@ -135,90 +137,91 @@ function RiskChartTooltip({
   );
 }
 
-interface KeyTimepointCard {
-  timeLabel: string;
-  risk: number;
-  thresholdLow: number;
-  thresholdHigh: number;
-  thresholdAverage: number;
-  category: RiskCategory;
-}
-
-const KEY_TIMEPOINT_START_DAYS = 0.5 * 365.25;
-const KEY_TIMEPOINT_GAP_DAYS = 0.5 * 365.25;
-
-/**
- * Pick up to two worst timepoints after 0.5 years, keeping them chronological.
- * The selection prefers, in order:
- * - the first observed crossing above the high threshold,
- * - the closest point below the high threshold,
- * - the closest point below the average threshold.
- * The second point must be at least 0.5 years after the first.
- */
-function pickKeyTimepoints(survivalCurve: SurvivalPoint[]): KeyTimepointCard[] {
-  const eligiblePoints = survivalCurve
-    .filter((p) => p.category !== "low" && p.time >= KEY_TIMEPOINT_START_DAYS)
-    .sort((a, b) => a.time - b.time);
-
-  if (eligiblePoints.length === 0) return [];
-
-  const pickWorstFallbackPoint = (points: SurvivalPoint[]) => {
-    if (points.length === 0) return undefined;
-
-    const closestBelowHigh = points
-      .filter((point) => point.risk < point.thresholdHigh)
-      .reduce<SurvivalPoint | undefined>((best, point) => {
-        if (!best) return point;
-        const bestDistance = best.thresholdHigh - best.risk;
-        const currentDistance = point.thresholdHigh - point.risk;
-        if (currentDistance < bestDistance) return point;
-        if (currentDistance > bestDistance) return best;
-        return point.time < best.time ? point : best;
-      }, undefined);
-
-    if (closestBelowHigh) {
-      return closestBelowHigh;
-    }
-
-    const closestBelowAverage = points
-      .filter((point) => point.risk < point.thresholdAverage)
-      .reduce<SurvivalPoint | undefined>((best, point) => {
-        if (!best) return point;
-        const bestDistance = best.thresholdAverage - best.risk;
-        const currentDistance = point.thresholdAverage - point.risk;
-        if (currentDistance < bestDistance) return point;
-        if (currentDistance > bestDistance) return best;
-        return point.time < best.time ? point : best;
-      }, undefined);
-
-    return closestBelowAverage;
-  };
-
-  const highCrossings = eligiblePoints.filter((point, index) => {
-    if (point.risk < point.thresholdHigh) return false;
-    if (index === 0) return true;
-    return eligiblePoints[index - 1].risk < eligiblePoints[index - 1].thresholdHigh;
-  });
-
-  const firstPoint = highCrossings[0] ?? pickWorstFallbackPoint(eligiblePoints);
-  if (!firstPoint) return [];
-
-  const laterPoints = eligiblePoints.filter((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
-  const secondHighCrossing = highCrossings.find((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
-  const secondPoint = secondHighCrossing ?? pickWorstFallbackPoint(laterPoints);
-
-  return [firstPoint, secondPoint]
-    .filter((point): point is SurvivalPoint => Boolean(point))
-    .sort((a, b) => a.time - b.time)
-    .map((point) => ({
-      timeLabel: formatYearsAndMonthsFromDays(point.time),
-      risk: point.risk,
-      thresholdLow: point.thresholdLow,
-      thresholdHigh: point.thresholdHigh,
-      thresholdAverage: point.thresholdAverage,
-      category: point.category,
-    }));
-}
+// --- "Risk at Key Timepoints" selection logic (disabled) ---
+// interface KeyTimepointCard {
+//   timeLabel: string;
+//   risk: number;
+//   thresholdLow: number;
+//   thresholdHigh: number;
+//   thresholdAverage: number;
+//   category: RiskCategory;
+// }
+//
+// const KEY_TIMEPOINT_START_DAYS = 0.5 * 365.25;
+// const KEY_TIMEPOINT_GAP_DAYS = 0.5 * 365.25;
+//
+// /**
+//  * Pick up to two worst timepoints after 0.5 years, keeping them chronological.
+//  * The selection prefers, in order:
+//  * - the first observed crossing above the high threshold,
+//  * - the closest point below the high threshold,
+//  * - the closest point below the average threshold.
+//  * The second point must be at least 0.5 years after the first.
+//  */
+// function pickKeyTimepoints(survivalCurve: SurvivalPoint[]): KeyTimepointCard[] {
+//   const eligiblePoints = survivalCurve
+//     .filter((p) => p.category !== "low" && p.time >= KEY_TIMEPOINT_START_DAYS)
+//     .sort((a, b) => a.time - b.time);
+//
+//   if (eligiblePoints.length === 0) return [];
+//
+//   const pickWorstFallbackPoint = (points: SurvivalPoint[]) => {
+//     if (points.length === 0) return undefined;
+//
+//     const closestBelowHigh = points
+//       .filter((point) => point.risk < point.thresholdHigh)
+//       .reduce<SurvivalPoint | undefined>((best, point) => {
+//         if (!best) return point;
+//         const bestDistance = best.thresholdHigh - best.risk;
+//         const currentDistance = point.thresholdHigh - point.risk;
+//         if (currentDistance < bestDistance) return point;
+//         if (currentDistance > bestDistance) return best;
+//         return point.time < best.time ? point : best;
+//       }, undefined);
+//
+//     if (closestBelowHigh) {
+//       return closestBelowHigh;
+//     }
+//
+//     const closestBelowAverage = points
+//       .filter((point) => point.risk < point.thresholdAverage)
+//       .reduce<SurvivalPoint | undefined>((best, point) => {
+//         if (!best) return point;
+//         const bestDistance = best.thresholdAverage - best.risk;
+//         const currentDistance = point.thresholdAverage - point.risk;
+//         if (currentDistance < bestDistance) return point;
+//         if (currentDistance > bestDistance) return best;
+//         return point.time < best.time ? point : best;
+//       }, undefined);
+//
+//     return closestBelowAverage;
+//   };
+//
+//   const highCrossings = eligiblePoints.filter((point, index) => {
+//     if (point.risk < point.thresholdHigh) return false;
+//     if (index === 0) return true;
+//     return eligiblePoints[index - 1].risk < eligiblePoints[index - 1].thresholdHigh;
+//   });
+//
+//   const firstPoint = highCrossings[0] ?? pickWorstFallbackPoint(eligiblePoints);
+//   if (!firstPoint) return [];
+//
+//   const laterPoints = eligiblePoints.filter((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
+//   const secondHighCrossing = highCrossings.find((point) => point.time >= firstPoint.time + KEY_TIMEPOINT_GAP_DAYS);
+//   const secondPoint = secondHighCrossing ?? pickWorstFallbackPoint(laterPoints);
+//
+//   return [firstPoint, secondPoint]
+//     .filter((point): point is SurvivalPoint => Boolean(point))
+//     .sort((a, b) => a.time - b.time)
+//     .map((point) => ({
+//       timeLabel: formatYearsAndMonthsFromDays(point.time),
+//       risk: point.risk,
+//       thresholdLow: point.thresholdLow,
+//       thresholdHigh: point.thresholdHigh,
+//       thresholdAverage: point.thresholdAverage,
+//       category: point.category,
+//     }));
+// }
 
 const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
   const xAxisTicks = [0.5, 1, 2, 3, 4, 5];
@@ -265,7 +268,7 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
     [chartData, chartMax]
   );
 
-  const keyTimepoints = useMemo(() => pickKeyTimepoints(survivalCurve), [survivalCurve]);
+  // const keyTimepoints = useMemo(() => pickKeyTimepoints(survivalCurve), [survivalCurve]);
 
   return (
     <div className="space-y-4">
@@ -282,7 +285,7 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="h-[320px] w-full">
+          <div className="h-[380px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartDataWithZones} margin={{ top: 10, right: 10, left: 0, bottom: 26 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -398,7 +401,9 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
         </CardContent>
       </Card>
 
-      {/* Yearly risk summary with categories */}
+      {/* "Risk at Key Timepoints" card disabled — uncomment below (and the
+          companion blocks: Badge import, categoryConfig, pickKeyTimepoints,
+          keyTimepoints useMemo above) to re-enable.
       <Card className="border-border/60 shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold tracking-tight">
@@ -440,6 +445,7 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
           )}
         </CardContent>
       </Card>
+      */}
     </div>
   );
 };

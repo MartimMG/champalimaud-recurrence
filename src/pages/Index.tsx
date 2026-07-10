@@ -34,8 +34,8 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left: Patient form */}
-          <div className="lg:col-span-4">
+          {/* Left: Patient form — scrolls independently so the results stay reachable */}
+          <div className="lg:col-span-4 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
             <PatientForm input={input} onChange={setInput} />
           </div>
 
