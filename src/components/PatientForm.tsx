@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,41 @@ import {
   type PatientInput,
 } from "@/lib/coxModel";
 
+type VariableGroup = "clinical" | "treatment";
+
+const SECTION_LOCATION_NODES = "Locoregional status";
+
+const VARIABLE_META: Record<string, { group: VariableGroup; section: string }> = {
+  // Clinical
+  side_location_of_the_lesion: { group: "clinical", section: SECTION_LOCATION_NODES },
+  n_regional_nodes_affected: { group: "clinical", section: SECTION_LOCATION_NODES },
+  grade_at_cb: { group: "clinical", section: "Core biopsy findings" },
+  oestrogen_receptor_status_at_cb: { group: "clinical", section: "Core biopsy findings" },
+  her2_overexpression_with_immunohystochemistry_at_cb: { group: "clinical", section: "Core biopsy findings" },
+  isotype_at_cb: { group: "clinical", section: "Core biopsy findings" },
+  // Treatment
+  radiotherapy_rt_performed: { group: "treatment", section: "Radiotherapy" },
+  radiotherapy_on_supraclavicular_area: { group: "treatment", section: "Radiotherapy" },
+  total_administered_dose: { group: "treatment", section: "Radiotherapy" },
+  adjuvant_therapy_using_biological_drugs: { group: "treatment", section: "Systemic therapy" },
+  endocrine_therapy_performed: { group: "treatment", section: "Systemic therapy" },
+  treatment_in_association_with_chemotherapy: { group: "treatment", section: "Systemic therapy" },
+};
+
+const SECTION_ORDER: Record<VariableGroup, string[]> = {
+  clinical: [SECTION_LOCATION_NODES, "Core biopsy findings"],
+  treatment: ["Radiotherapy", "Systemic therapy"],
+};
+
+const GROUP_COPY: Record<VariableGroup, { title: string }> = {
+  clinical: { title: "Clinical Variables" },
+  treatment: { title: "Treatment Variables" },
+};
+
 interface PatientFormProps {
   input: PatientInput;
   onChange: (input: PatientInput) => void;
+  group: VariableGroup;
 }
 
 function formatUiVariableLabel(label: string): string {
@@ -24,12 +57,82 @@ function formatUiVariableLabel(label: string): string {
     return "Hormone therapy associated with chemotherapy protocol";
   }
   if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
-  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status at CB";
-  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry) at CB";
-  return label;
+  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status";
+  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry)";
+  return label.replace(/ at CB$/, "");
 }
 
-const PatientForm = ({ input, onChange }: PatientFormProps) => {
+type FieldItem =
+  | { kind: "switch"; key: string; label: string }
+  | { kind: "select"; key: string; label: string; options: readonly { label: string; value: number }[] }
+  | { kind: "continuous"; key: string; label: string; min: number; max: number }
+  | { kind: "ohe"; key: string; label: string; options: readonly { label: string; value: string }[] };
+
+interface ContinuousFieldProps {
+  field: Extract<FieldItem, { kind: "continuous" }>;
+  value: number;
+  onChange: (value: number) => void;
+}
+
+// Uses its own local text state so the field can be freely cleared while typing
+// (a controlled input bound straight to the numeric model snaps back to the
+// fallback value the instant it's empty, making the default "0" impossible to
+// remove). Clamping to [min, max] and syncing back to the model only happens
+// on blur/Enter, once the user is done typing.
+function ContinuousField({ field, value, onChange }: ContinuousFieldProps) {
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  const commit = (raw: string) => {
+    const parsed = parseFloat(raw);
+    const clamped = Number.isFinite(parsed)
+      ? Math.min(field.max, Math.max(field.min, parsed))
+      : field.min;
+    onChange(clamped);
+    setText(String(clamped));
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium" htmlFor={field.key}>
+        {field.label}
+      </Label>
+      <Input
+        id={field.key}
+        type="number"
+        min={field.min}
+        max={field.max}
+        step="any"
+        value={text}
+        onFocus={(e) => {
+          if (e.currentTarget.value === "0") {
+            setText("");
+          } else {
+            e.currentTarget.select();
+          }
+        }}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={(e) => commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit(e.currentTarget.value);
+        }}
+      />
+    </div>
+  );
+}
+
+const ALL_FIELDS: FieldItem[] = [
+  ...BINARY_SWITCH_VARIABLES.map((v): FieldItem => ({ kind: "switch", key: v.key, label: v.label })),
+  ...BINARY_DROPDOWN_VARIABLES.map((v): FieldItem => ({ kind: "select", key: v.key, label: v.label, options: v.options })),
+  ...NUMERIC_SELECT_VARIABLES.map((v): FieldItem => ({ kind: "select", key: v.key, label: v.label, options: v.options })),
+  ...CONTINUOUS_INPUT_VARIABLES.map((v): FieldItem => ({ kind: "continuous", key: v.key, label: v.label, min: v.min, max: v.max })),
+  ...OHE_UI_VARIABLES.map((v): FieldItem => ({ kind: "ohe", key: v.key, label: v.label, options: v.options })),
+];
+
+const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
   const updateField = (key: keyof PatientInput, value: number | string) => {
     onChange({ ...input, [key]: value });
   };
@@ -39,77 +142,52 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
     side_location_of_the_lesion: { off: "L", on: "R" },
   };
 
-  return (
-    <Card className="border-border/60 shadow-md">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold tracking-tight">
-          Patient Variables
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Toggle or select the clinical variables for risk assessment
-        </p>
-        <p className="text-xs text-muted-foreground">CB = Core Biopsy</p>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        {/* Binary switch variables */}
-        <div className="space-y-3">
-          {BINARY_SWITCH_VARIABLES.map((v) => (
-            <div
-              key={v.key}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5"
-            >
-              <Label
-                htmlFor={v.key}
-                className="text-sm font-normal leading-tight cursor-pointer flex-1"
-              >
-                {formatUiVariableLabel(v.label)}
-              </Label>
-              {binarySwitchIndicators[v.key]?.off && (
-                <span className="text-xs text-muted-foreground tabular-nums min-w-3 text-right">
-                  {binarySwitchIndicators[v.key]!.off}
-                </span>
-              )}
-              <Switch
-                id={v.key}
-                checked={input[v.key] === 1}
-                onCheckedChange={(checked) =>
-                  updateField(v.key, checked ? 1 : 0)
-                }
-              />
-              {binarySwitchIndicators[v.key]?.on && (
-                <span className="text-xs text-muted-foreground tabular-nums min-w-3">
-                  {binarySwitchIndicators[v.key]!.on}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
+  const sections = SECTION_ORDER[group].map((sectionName) => ({
+    name: sectionName,
+    fields: ALL_FIELDS.filter(
+      (f) => VARIABLE_META[f.key]?.group === group && VARIABLE_META[f.key]?.section === sectionName
+    ),
+  }));
 
-        {/* Binary dropdown variables */}
-        {BINARY_DROPDOWN_VARIABLES.map((v) => (
-          <div key={v.key} className="space-y-2">
-            <Label className="text-sm font-medium">{formatUiVariableLabel(v.label)}</Label>
-            <Select
-              value={String(input[v.key as keyof PatientInput])}
-              onValueChange={(val) => updateField(v.key as keyof PatientInput, Number(val))}
+  const { title } = GROUP_COPY[group];
+
+  const renderField = (field: FieldItem) => {
+    switch (field.kind) {
+      case "switch": {
+        const key = field.key as keyof PatientInput;
+        const indicators = binarySwitchIndicators[field.key as (typeof BINARY_SWITCH_VARIABLES)[number]["key"]];
+        return (
+          <div
+            key={field.key}
+            className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-2"
+          >
+            <Label
+              htmlFor={field.key}
+              className="text-sm font-normal leading-tight cursor-pointer flex-1"
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {v.options.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {formatUiVariableLabel(field.label)}
+            </Label>
+            {indicators?.off && (
+              <span className="text-xs text-muted-foreground tabular-nums min-w-3 text-right">
+                {indicators.off}
+              </span>
+            )}
+            <Switch
+              id={field.key}
+              checked={input[key] === 1}
+              onCheckedChange={(checked) => updateField(key, checked ? 1 : 0)}
+            />
+            {indicators?.on && (
+              <span className="text-xs text-muted-foreground tabular-nums min-w-3">
+                {indicators.on}
+              </span>
+            )}
           </div>
-        ))}
-
-        {/* Discrete dropdowns (e.g. Grade at CB) */}
-        {NUMERIC_SELECT_VARIABLES.map((field) => (
-          <div key={field.key} className="space-y-2">
+        );
+      }
+      case "select":
+        return (
+          <div key={field.key} className="space-y-1.5">
             <Label className="text-sm font-medium">{formatUiVariableLabel(field.label)}</Label>
             <Select
               value={String(input[field.key as keyof PatientInput])}
@@ -127,52 +205,56 @@ const PatientForm = ({ input, onChange }: PatientFormProps) => {
               </SelectContent>
             </Select>
           </div>
-        ))}
-
-        {/* Continuous inputs (from scaler range in model bundle) */}
-        {CONTINUOUS_INPUT_VARIABLES.map((field) => (
-          <div key={field.key} className="space-y-2">
-            <Label className="text-sm font-medium" htmlFor={field.key}>
-              {field.label}
-            </Label>
-            <Input
-              id={field.key}
-              type="number"
-              min={field.min}
-              max={field.max}
-              step="any"
-              value={input[field.key as keyof PatientInput] as number}
-              onFocus={(e) => e.currentTarget.select()}
-              onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                updateField(
-                  field.key as keyof PatientInput,
-                  Number.isFinite(n) ? n : field.min
-                );
-              }}
-            />
-          </div>
-        ))}
-
-        {/* One-hot encoded groups (split into columns in the model) */}
-        {OHE_UI_VARIABLES.map((cat) => (
-          <div key={cat.key} className="space-y-2">
-            <Label className="text-sm font-medium">{formatUiVariableLabel(cat.label)}</Label>
+        );
+      case "continuous":
+        return (
+          <ContinuousField
+            key={field.key}
+            field={field}
+            value={input[field.key as keyof PatientInput] as number}
+            onChange={(v) => updateField(field.key as keyof PatientInput, v)}
+          />
+        );
+      case "ohe":
+        return (
+          <div key={field.key} className="space-y-1.5">
+            <Label className="text-sm font-medium">{formatUiVariableLabel(field.label)}</Label>
             <Select
-              value={input[cat.key] as string}
-              onValueChange={(v) => updateField(cat.key as keyof PatientInput, v)}
+              value={input[field.key as keyof PatientInput] as string}
+              onValueChange={(v) => updateField(field.key as keyof PatientInput, v)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {cat.options.map((opt) => (
+                {field.options.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <Card className="border-border/60 shadow-md">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold tracking-tight">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {sections.map((section, index) => (
+          <div key={section.name} className={index > 0 ? "border-t border-border/40 pt-3" : undefined}>
+            <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
+              {section.name}
+            </h3>
+            <div className="space-y-2">
+              {section.fields.map((field) => renderField(field))}
+            </div>
           </div>
         ))}
       </CardContent>

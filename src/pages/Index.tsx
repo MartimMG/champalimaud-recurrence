@@ -15,7 +15,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/60 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <img
             src="/logo.png"
             alt="App logo"
@@ -32,15 +32,15 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-[1920px] mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left: Patient form — scrolls independently so the results stay reachable */}
-          <div className="lg:col-span-4 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
-            <PatientForm input={input} onChange={setInput} />
+          {/* Left: Clinical variables — scrolls independently so the results stay reachable */}
+          <div className="order-1 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+            <PatientForm input={input} onChange={setInput} group="clinical" />
           </div>
 
-          {/* Right: Results */}
-          <div className="lg:col-span-8">
+          {/* Middle: Results — ordered last on mobile so both variable panels are filled in first */}
+          <div className="order-3 lg:order-none lg:col-span-6">
             <Tabs defaultValue="risk" className="w-full">
               <TabsList className="mb-4">
                 <TabsTrigger value="risk" className="gap-1.5">
@@ -62,6 +62,11 @@ const Index = () => {
                 <VariableImportance contributions={results.contributions} input={input} />
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Right: Treatment variables — scrolls independently so the results stay reachable */}
+          <div className="order-2 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+            <PatientForm input={input} onChange={setInput} group="treatment" />
           </div>
         </div>
       </main>

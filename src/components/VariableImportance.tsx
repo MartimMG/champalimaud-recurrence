@@ -1,15 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import {
   BINARY_SWITCH_VARIABLES,
   OHE_UI_VARIABLES,
   type FeatureContribution,
@@ -28,9 +18,9 @@ function formatUiVariableLabel(label: string): string {
     return "Hormone therapy associated with chemotherapy protocol";
   }
   if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
-  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status at CB";
-  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry) at CB";
-  return label;
+  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status";
+  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry)";
+  return label.replace(/ at CB$/, "");
 }
 
 function getValueLabelForGroup(displayName: string, input: PatientInput): string {
@@ -50,38 +40,74 @@ function getValueLabelForGroup(displayName: string, input: PatientInput): string
   return "N/A";
 }
 
-function wrapTickLabel(name: string, maxLengthPerLine = 28): string[] {
-  if (name.length <= maxLengthPerLine) return [name];
+const ROW_HEIGHT = 40;
+const LABEL_WIDTH = 250;
+const BAR_HEIGHT = 20;
+const TICK_COUNT = 9;
 
-  const words = name.split(" ");
-  if (words.length === 1) return [name];
+function toPercent(value: number, domainMin: number, domainMax: number): number {
+  if (domainMax === domainMin) return 50;
+  return ((value - domainMin) / (domainMax - domainMin)) * 100;
+}
 
-  let firstLine = "";
-  let secondLine = "";
+function formatTick(value: number, range: number): string {
+  const decimals = range < 1 ? 2 : range < 10 ? 1 : 0;
+  const formatted = value.toFixed(decimals);
+  return formatted === `-${(0).toFixed(decimals)}` ? (0).toFixed(decimals) : formatted;
+}
 
-  for (const word of words) {
-    const candidate = firstLine ? `${firstLine} ${word}` : word;
-    if (candidate.length <= maxLengthPerLine) {
-      firstLine = candidate;
-    } else {
-      secondLine = secondLine ? `${secondLine} ${word}` : word;
-    }
-  }
+function niceStep(rawStep: number): number {
+  const exponent = Math.floor(Math.log10(rawStep));
+  const fraction = rawStep / 10 ** exponent;
+  const niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
+  return niceFraction * 10 ** exponent;
+}
 
-  if (!secondLine) return [name];
-
-  return [firstLine, secondLine];
+// Builds ticks by stepping out from 0 in both directions, so 0 is always included
+// regardless of the data's actual min/max (unlike evenly dividing [domainMin, domainMax]).
+function computeTicks(domainMin: number, domainMax: number, targetCount: number): number[] {
+  if (domainMin === domainMax) return [0];
+  const rawStep = (domainMax - domainMin) / Math.max(1, targetCount - 1);
+  const step = niceStep(rawStep);
+  const ticks = [0];
+  for (let v = step; v <= domainMax + 1e-9; v += step) ticks.push(+v.toFixed(10));
+  for (let v = -step; v >= domainMin - 1e-9; v -= step) ticks.push(+v.toFixed(10));
+  return ticks.sort((a, b) => a - b);
 }
 
 const VariableImportance = ({ contributions, input }: VariableImportanceProps) => {
-  const chartData = contributions.map((c) => ({
-    fullName: formatUiVariableLabel(c.name),
-    valueLabel: getValueLabelForGroup(formatUiVariableLabel(c.name), input),
-    contribution: +c.contribution.toFixed(4),
-    direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
-  }));
+  const items = contributions.map((c) => {
+    const fullName = formatUiVariableLabel(c.name);
+    const valueLabel = getValueLabelForGroup(fullName, input);
+    return {
+      key: c.name,
+      fullName,
+      valueLabel,
+      contribution: +c.contribution.toFixed(4),
+      direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
+    };
+  });
 
-  const valueByName = new Map(chartData.map((d) => [d.fullName, d.valueLabel]));
+  // Stable DOM/key order (alphabetical, independent of value) so React keeps the same
+  // elements across renders — only their computed rank/position changes, which lets the
+  // CSS "top" transition animate a smooth reorder instead of labels snapping instantly.
+  const stableItems = [...items].sort((a, b) => a.key.localeCompare(b.key));
+  const rankedByValue = [...items].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const rankByKey = new Map(rankedByValue.map((item, index) => [item.key, index]));
+
+  const rawValues = items.map((d) => d.contribution);
+  const rawMin = Math.min(0, ...rawValues);
+  const rawMax = Math.max(0, ...rawValues);
+  const range = rawMax - rawMin || 1;
+  const pad = range * 0.1;
+  const domainMin = rawMin < 0 ? rawMin - pad : 0;
+  const domainMax = rawMax > 0 ? rawMax + pad : 0;
+  const domainRange = domainMax - domainMin || 1;
+
+  const ticks = computeTicks(domainMin, domainMax, TICK_COUNT);
+  const zeroPercent = toPercent(0, domainMin, domainMax);
+
+  const rowsHeight = items.length * ROW_HEIGHT;
 
   return (
     <Card className="border-border/60 shadow-md">
@@ -99,98 +125,109 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-[380px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{ top: 5, right: 20, left: 16, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis
-                type="number"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                stroke="hsl(var(--border))"
-                label={{
-                  value: "Contribution to risk",
-                  position: "insideBottomRight",
-                  offset: -5,
-                  style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 },
-                }}
-              />
-              <YAxis
-                type="category"
-                dataKey="fullName"
-                width={320}
-                interval={0}
-                stroke="hsl(var(--border))"
-                tick={({ x, y, payload }) => {
-                  const name = String(payload?.value ?? "");
-                  const value = valueByName.get(name) ?? "N/A";
-                  const lines = wrapTickLabel(name);
-                  const lineHeight = 15;
-                  const nameX = x - 128;
-                  const valueX = x - 120;
-                  return (
-                    <g>
-                      <text
-                        x={nameX}
-                        y={y}
-                        fill="hsl(var(--foreground))"
-                        fontSize={12}
-                        textAnchor="end"
-                        dominantBaseline="central"
-                      >
-                        {lines.map((line, index) => (
-                          <tspan key={`${line}-${index}`} x={nameX} dy={index === 0 ? -(lines.length - 1) * lineHeight / 2 : lineHeight}>
-                            {line}
-                          </tspan>
-                        ))}
-                      </text>
-                      <text
-                        x={valueX}
-                        y={y}
-                        fill="hsl(var(--foreground))"
-                        fontSize={11}
-                        fontWeight={700}
-                        textAnchor="start"
-                        dominantBaseline="central"
-                      >
-                        [{value}]
-                      </text>
-                    </g>
-                  );
-                }}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  fontSize: 13,
-                }}
-                labelFormatter={(label) => String(label)}
-                formatter={(value: number, _: string, props: { payload: { fullName: string; valueLabel: string } }) => [
-                  `${value > 0 ? "+" : ""}${Number(value).toFixed(4)} (Value: ${props.payload.valueLabel})`,
-                  "Contribution",
-                ]}
-              />
-              <Bar dataKey="contribution" radius={[0, 4, 4, 0]} barSize={22}>
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={
-                      entry.direction === "risk"
-                          ? "hsl(var(--destructive))"
-                          : "hsl(var(--accent))"
-                    }
-                    fillOpacity={0.85}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Purely decorative — the actual data is exposed to assistive tech via the
+            sr-only table below, so screen readers skip this whole visual chart. */}
+        <div aria-hidden="true">
+          <div className="relative" style={{ height: rowsHeight }}>
+            {/* Gridlines */}
+            <div className="absolute inset-y-0" style={{ left: LABEL_WIDTH, right: 0 }}>
+              {ticks.map((t, i) => (
+                <div
+                  key={i}
+                  className="absolute top-0 bottom-0 border-l border-dashed border-border"
+                  style={{ left: `${toPercent(t, domainMin, domainMax)}%` }}
+                />
+              ))}
+            </div>
+
+            {stableItems.map((item) => {
+              const rank = rankByKey.get(item.key) ?? 0;
+              const valuePercent = toPercent(item.contribution, domainMin, domainMax);
+              const barLeft = Math.min(valuePercent, zeroPercent);
+              const barWidth = Math.abs(valuePercent - zeroPercent);
+              return (
+                <div
+                  key={item.key}
+                  className="group absolute left-0 right-0 flex items-center transition-[top] duration-500 ease-in-out"
+                  style={{ top: rank * ROW_HEIGHT, height: ROW_HEIGHT }}
+                >
+                  <div
+                    className="shrink-0 pr-2 text-right text-xs leading-tight text-foreground"
+                    style={{ width: LABEL_WIDTH }}
+                  >
+                    {item.fullName} <span className="font-bold">[{item.valueLabel}]</span>
+                  </div>
+                  <div className="relative h-full flex-1">
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 rounded transition-all duration-500 ease-in-out"
+                      style={{
+                        left: `${barLeft}%`,
+                        width: `${barWidth}%`,
+                        height: BAR_HEIGHT,
+                        backgroundColor: item.direction === "risk" ? "hsl(var(--destructive))" : "hsl(var(--accent))",
+                        opacity: 0.85,
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute -top-1 z-20 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground opacity-0 shadow-md transition-opacity duration-500 group-hover:opacity-100"
+                      style={{ left: `${valuePercent}%` }}
+                    >
+                      {item.contribution > 0 ? "+" : ""}
+                      {item.contribution.toFixed(4)} (Value: {item.valueLabel})
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Axis */}
+          <div className="relative mt-1 h-5 text-[11px] text-muted-foreground" style={{ marginLeft: LABEL_WIDTH }}>
+            {ticks.map((t, i) => (
+              <span
+                key={i}
+                className="absolute -translate-x-1/2 tabular-nums"
+                style={{ left: `${toPercent(t, domainMin, domainMax)}%` }}
+              >
+                {formatTick(t, domainRange)}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-right text-xs text-muted-foreground">Contribution to risk</p>
+        </div>
+
+        {/* Screen-reader-only equivalent of the chart above, ordered by impact (highest first).
+            Built from divs with ARIA table roles rather than a real <table> — a real <table>'s
+            row height can't be shrunk below its (nowrap) cell content no matter what CSS you
+            throw at it, and that oversized absolutely-positioned box was inflating the page's
+            scrollable height even though nothing was visibly painted. Screen readers expose
+            ARIA table roles identically to real table markup. */}
+        <div
+          className="sr-only"
+          role="table"
+          aria-label="Variable contributions to the patient's risk score, ordered from highest to lowest impact"
+        >
+          <div role="rowgroup">
+            <div role="row">
+              <span role="columnheader">Variable</span>
+              <span role="columnheader">Selected value</span>
+              <span role="columnheader">Contribution</span>
+              <span role="columnheader">Direction</span>
+            </div>
+          </div>
+          <div role="rowgroup">
+            {rankedByValue.map((item) => (
+              <div role="row" key={item.key}>
+                <span role="rowheader">{item.fullName}</span>
+                <span role="cell">{item.valueLabel}</span>
+                <span role="cell">
+                  {item.contribution > 0 ? "+" : ""}
+                  {item.contribution.toFixed(4)}
+                </span>
+                <span role="cell">{item.direction === "risk" ? "Increases risk" : "Decreases risk (protective)"}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
