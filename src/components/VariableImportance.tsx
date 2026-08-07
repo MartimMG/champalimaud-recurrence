@@ -113,7 +113,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
     <Card className="border-border/60 shadow-md">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold tracking-tight">
-          Variable Contributions
+          Variable Contributions to Risk
         </CardTitle>
         <p className="text-sm text-muted-foreground">
           How each variable affects the patient&apos;s risk score.{" "}
@@ -128,6 +128,21 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
         {/* Purely decorative — the actual data is exposed to assistive tech via the
             sr-only table below, so screen readers skip this whole visual chart. */}
         <div aria-hidden="true">
+          <p className="mb-1 text-right text-xs text-muted-foreground">%</p>
+
+          {/* Axis */}
+          <div className="relative mb-1 h-5 text-[11px] text-muted-foreground" style={{ marginLeft: LABEL_WIDTH }}>
+            {ticks.map((t, i) => (
+              <span
+                key={i}
+                className="absolute -translate-x-1/2 tabular-nums"
+                style={{ left: `${toPercent(t, domainMin, domainMax)}%` }}
+              >
+                {formatTick(t, domainRange)}
+              </span>
+            ))}
+          </div>
+
           <div className="relative" style={{ height: rowsHeight }}>
             {/* Gridlines */}
             <div className="absolute inset-y-0" style={{ left: LABEL_WIDTH, right: 0 }}>
@@ -180,20 +195,6 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
               );
             })}
           </div>
-
-          {/* Axis */}
-          <div className="relative mt-1 h-5 text-[11px] text-muted-foreground" style={{ marginLeft: LABEL_WIDTH }}>
-            {ticks.map((t, i) => (
-              <span
-                key={i}
-                className="absolute -translate-x-1/2 tabular-nums"
-                style={{ left: `${toPercent(t, domainMin, domainMax)}%` }}
-              >
-                {formatTick(t, domainRange)}
-              </span>
-            ))}
-          </div>
-          <p className="mt-3 text-right text-xs text-muted-foreground">Contribution to risk</p>
         </div>
 
         {/* Screen-reader-only equivalent of the chart above, ordered by impact (highest first).

@@ -176,6 +176,7 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
               id={field.key}
               checked={input[key] === 1}
               onCheckedChange={(checked) => updateField(key, checked ? 1 : 0)}
+              className={field.key === "side_location_of_the_lesion" ? "data-[state=checked]:bg-input" : undefined}
             />
             {indicators?.on && (
               <span className="text-xs text-muted-foreground tabular-nums min-w-3">
