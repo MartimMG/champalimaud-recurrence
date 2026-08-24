@@ -14,20 +14,36 @@ import numpy as np
 # --- Canonical variable names (must match training column names in the .pkl) ---
 
 BINARY_VARIABLES = [
-    "Adjuvant therapy using biological drugs",
-    "Trastuzumab or other drugs",
     "Radiotherapy (RT) performed",
     "Radiotherapy on chest wall",
     "Radiotherapy on supraclavicular area",
     "Radiotherapy on internal mammary chain",
-    "Endocrine therapy performed",
     "State (if hormone therapy prescribed)",
     "Treatment in association with chemotherapy",
     "Chemotherapy performed",
     "Adjuvant chemotherapy",
     "Type of invasion at CB",
+    "Oestrogen receptor status at CB",
     "Progesterone receptor status at CB",
     "Side location of the lesion"
+]
+
+# Binary variables whose UI default is 1 rather than 0.
+BINARY_DEFAULT_ONE = {
+    # Oestrogen receptor status is a plain 0/1 column in the current bundle, and 0 is
+    # the high-risk branch (coef is large and protective). Defaulting to 0 would open
+    # the form on a red patient; positive is also the training majority (2655/3228).
+    "Oestrogen receptor status at CB",
+}
+
+# Model columns that are deliberately never surfaced in the UI. They are derived from
+# which diagnostic fields were missing at training time, so a user of the calculator has
+# nothing to enter for them. They carry zero coefficients in the current bundle; if that
+# ever changes, assert_all_nonzero_emitted() below will stop the build rather than let
+# the app quietly ignore a live predictor.
+EXCLUDED_COLUMNS = [
+    "Diagnostic panel missingness pattern_missing_3",
+    "Diagnostic panel missingness pattern_missing_7",
 ]
 
 CONTINUOUS_VARIABLES = [
@@ -47,28 +63,38 @@ OHE_COLUMNS: dict[str, list[str]] = {
         "N (Regional nodes affected)_1.0",
         "N (Regional nodes affected)_23.0",
     ],
-    "Oestrogen receptor status at CB": [
-        "Oestrogen receptor status at CB_0.0",
-        "Oestrogen receptor status at CB_1.0",
-    ],
+    # The bundle dropped the _1.0 column, so "Negative (0/1+)" is now the implicit
+    # baseline (all one-hot columns zero) rather than a column of its own.
     "Her2 overexpression (with immunohystochemistry) at CB": [
-        "Her2 overexpression (with immunohystochemistry) at CB_1.0",
         "Her2 overexpression (with immunohystochemistry) at CB_2.0",
         "Her2 overexpression (with immunohystochemistry) at CB_3.0",
-    ],
-    "Classification with respect to other lesions": [
-        "Classification with respect to other lesions_2.0",
-        "Classification with respect to other lesions_3.0",
     ],
     "Isotype at CB": [
         "Isotype at CB_2.0",
         "Isotype at CB_3.0",
         "Isotype at CB_4.0",
     ],
-    "Disease extent": [
-        "Disease extent_1.0",
-        "Disease extent_2.0",
-    ],
+}
+
+# Groups whose member columns are separate binaries in the bundle rather than a
+# prefixed one-hot block, but which are mutually exclusive and so behave as one
+# categorical. Rendered as a single Select, which makes the illegal combinations
+# unrepresentable instead of merely discouraged.
+#
+# "options" is (label, value); a value with no entry in "columns" is the baseline
+# (every member column zero).
+VIRTUAL_GROUPS: dict[str, dict] = {
+    # "Neoadjuvant (Only)" means neoadjuvant *without* adjuvant, so a patient who had
+    # both sits in the Adjuvant column. Training bears this out: none 2665,
+    # adjuvant 381, neoadjuvant-only 182, both 0.
+    "Biological therapy": {
+        "columns": {
+            "neo": "Neoadjuvant (Only) therapy with biological drugs",
+            "adj": "Adjuvant therapy using biological drugs",
+        },
+        "options": [("None", "none"), ("Neoadjuvant", "neo"), ("Adjuvant or both", "adj")],
+        "default": "none",
+    },
 }
 
 
@@ -105,25 +131,44 @@ def to_float_list(arr: Any) -> list[float]:
     return [float(x) for x in np.asarray(arr).tolist()]
 
 
-def find_threshold_average_column(thresholds_df: Any) -> str | None:
-    """Best-effort match for the average/intermediate threshold column in the bundle."""
+def find_threshold_average_column(thresholds_df: Any) -> str:
+    """The bundle's intermediate (middle) threshold column.
+
+    Deliberately has no midpoint fallback: the bundle derives this boundary from its own
+    rule (threshold_config["medium_rule"], currently "mean_risk"), and silently
+    substituting (t_low + t_high) / 2 would shift the yellow/orange band away from the
+    zone assignment the bundle itself reports.
+    """
     candidates = (
+        "t_intermediate",
         "t_avg",
         "t_average",
         "t_mean",
         "t_mid",
-        "t_intermediate",
     )
     for name in candidates:
         if name in thresholds_df:
             return name
-    return None
+    raise SystemExit(
+        "thresholds_df has no intermediate threshold column (looked for "
+        + ", ".join(candidates)
+        + "). Columns present: "
+        + ", ".join(str(c) for c in thresholds_df.columns)
+    )
 
 
 def fmt_number(x: float) -> str:
+    """Shortest representation that round-trips the float64 exactly.
+
+    repr() of a Python float and JS Number parsing are both IEEE-754 shortest-round-trip,
+    so the generated constants deserialise bit-identical to the values in the bundle.
+    Formatting to a fixed number of significant figures instead would quietly shift the
+    thresholds, which matters at the zone boundaries where a comparison is exact.
+    """
+    x = float(x)
     if np.isnan(x):
         return "0"
-    text = f"{x:.10g}"
+    text = repr(x)
     if "e" not in text and "." not in text:
         return text + ".0"
     return text
@@ -165,27 +210,13 @@ def build_ohe_ui_options(
         if "23.0" in sset:
             out.append(("2+", "23"))
         return out
-    if group_name == "Oestrogen receptor status at CB":
-        out = [("Unknown", "unknown")]
-        if "0.0" in sset:
-            out.append(("Negative", "0"))
-        if "1.0" in sset:
-            out.append(("Positive", "1"))
-        return out
     if group_name == "Her2 overexpression (with immunohystochemistry) at CB":
+        # "Negative (0/1+)" is the implicit baseline now that the _1.0 column is gone.
         suf_map = {
-            "1.0": ("Negative (0/1+)", "1"),
             "2.0": ("Dubious (2+)", "2"),
             "3.0": ("Positive (3+)", "3"),
         }
-        out = [("Unknown", "unknown")]
-        for suf in ("1.0", "2.0", "3.0"):
-            if suf in sset:
-                out.append(suf_map[suf])
-        return out
-    if group_name == "Classification with respect to other lesions":
-        suf_map = {"2.0": ("Category 2", "2"), "3.0": ("Category 3", "3")}
-        out = [("Unknown", "unknown")]
+        out = [("Negative (0/1+)", "1")]
         for suf in ("2.0", "3.0"):
             if suf in sset:
                 out.append(suf_map[suf])
@@ -201,75 +232,46 @@ def build_ohe_ui_options(
             if suf in sset:
                 out.append(suf_map[suf])
         return out
-    if group_name == "Disease extent":
-        # UI semantics:
-        # - "0" => localized
-        # - "1" => multifocal
-        # - "2" => multicentric
-        # - "unknown" => same as 0 (all one-hot columns are 0)
-        out = [("Unknown", "unknown"), ("Localized", "0")]
-        if "1.0" in sset:
-            out.append(("Multifocal", "1"))
-        if "2.0" in sset:
-            out.append(("Multicentric", "2"))
-        return out
     raise ValueError(f"Unknown OHE group: {group_name}")
 
 
 def ohe_default_value(group_name: str) -> str:
+    """The baseline level for a group: the value where every one-hot column is 0."""
     if group_name in (
-        "Oestrogen receptor status at CB",
+        "Grade at CB",
         "Her2 overexpression (with immunohystochemistry) at CB",
-        "Classification with respect to other lesions",
         "Isotype at CB",
     ):
         return "1"
-    if group_name == "Grade at CB":
-        return "1"
-    if group_name in (
-        "N (Regional nodes affected)",
-        "Disease extent",
-    ):
+    if group_name == "N (Regional nodes affected)":
         return "0"
-    return "unknown"
+    raise ValueError(f"Unknown OHE group: {group_name}")
 
 
-def emit_get_raw_value_body(active_ohe_keys: set[str]) -> str:
-    """TypeScript switch cases for OHE groups (by slug inputKey)."""
+def emit_get_raw_value_body(active_ohe_keys: set[str], active_virtual_keys: set[str]) -> str:
+    """TypeScript switch cases for grouped variables (by slug inputKey)."""
     blocks: dict[str, str] = {
-        slugify("Grade at CB"): """      if (v === "unknown") return 0;
-      if (s === "2.0") return v === "2" ? 1 : 0;
+        slugify("Grade at CB"): """      if (s === "2.0") return v === "2" ? 1 : 0;
       if (s === "3.0") return v === "3" ? 1 : 0;
       return 0;""",
-        slugify("Oestrogen receptor status at CB"): """      if (v === "unknown") return 0;
-      if (s === "0.0") return v === "0" ? 1 : 0;
-      if (s === "1.0") return v === "1" ? 1 : 0;
-      return 0;""",
-        slugify("Her2 overexpression (with immunohystochemistry) at CB"): """      if (v === "unknown") return 0;
-      if (s === "1.0") return v === "1" ? 1 : 0;
-      if (s === "2.0") return v === "2" ? 1 : 0;
+        slugify("Her2 overexpression (with immunohystochemistry) at CB"): """      if (s === "2.0") return v === "2" ? 1 : 0;
       if (s === "3.0") return v === "3" ? 1 : 0;
       return 0;""",
-        slugify("N (Regional nodes affected)"): """      if (v === "0") return 0;
-      if (s === "1.0") return v === "1" ? 1 : 0;
-        if (s === "23.0") return v === "23" ? 1 : 0;
+        slugify("N (Regional nodes affected)"): """      if (s === "1.0") return v === "1" ? 1 : 0;
+      if (s === "23.0") return v === "23" ? 1 : 0;
       return 0;""",
-        slugify("Classification with respect to other lesions"): """      if (v === "unknown") return 0;
-      if (s === "2.0") return v === "2" ? 1 : 0;
+        slugify("Isotype at CB"): """      if (s === "2.0") return v === "2" ? 1 : 0;
       if (s === "3.0") return v === "3" ? 1 : 0;
-      return 0;""",
-                slugify("Isotype at CB"): """      if (v === "unknown") return 0;
-            if (s === "2.0") return v === "2" ? 1 : 0;
-            if (s === "3.0") return v === "3" ? 1 : 0;
-            if (s === "4.0") return v === "4" ? 1 : 0;
-            return 0;""",
-        slugify("Disease extent"): """      if (v === "unknown" || v === "0") return 0;
-      if (s === "1.0") return v === "1" ? 1 : 0;
-      if (s === "2.0") return v === "2" ? 1 : 0;
+      if (s === "4.0") return v === "4" ? 1 : 0;
       return 0;""",
     }
+    # Virtual groups carry the activating option value itself in oheSuffix, so one
+    # comparison covers every member column.
+    for key in sorted(active_virtual_keys):
+        blocks[key] = """      return v === s ? 1 : 0;"""
+
     lines: list[str] = []
-    for key in sorted(active_ohe_keys):
+    for key in sorted(active_ohe_keys | active_virtual_keys):
         if key not in blocks:
             continue
         lines.append(f"    case {ts_string(key)}:")
@@ -277,6 +279,41 @@ def emit_get_raw_value_body(active_ohe_keys: set[str]) -> str:
     lines.append("    default:")
     lines.append("      return 0;")
     return "\n".join(lines)
+
+
+def assert_all_nonzero_emitted(
+    feature_names: list[str], coefs_raw: Any, emitted: set[str]
+) -> None:
+    """Stop the build if a live predictor never made it into the generated file.
+
+    The name lists above are hand-maintained, so a bundle that renames or reshapes a
+    column would otherwise produce a TypeScript file that scores confidently but wrongly.
+    """
+    missing = [
+        name
+        for i, name in enumerate(feature_names)
+        if abs(float(coefs_raw[i])) > 1e-12 and name not in emitted
+    ]
+    if missing:
+        raise SystemExit(
+            "Bundle has non-zero coefficients for columns this script does not emit:\n"
+            + "\n".join(f"  - {name}" for name in missing)
+            + "\n\nAdd each to BINARY_VARIABLES, CONTINUOUS_VARIABLES, OHE_COLUMNS or "
+            "VIRTUAL_GROUPS (or to EXCLUDED_COLUMNS if it is intentionally not a UI field)."
+        )
+
+    live_exclusions = [
+        name
+        for name in EXCLUDED_COLUMNS
+        if name in feature_names
+        and abs(float(coefs_raw[feature_names.index(name)])) > 1e-12
+    ]
+    if live_exclusions:
+        raise SystemExit(
+            "These columns are in EXCLUDED_COLUMNS but now carry a non-zero coefficient, "
+            "so excluding them would change every prediction:\n"
+            + "\n".join(f"  - {name}" for name in live_exclusions)
+        )
 
 
 def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
@@ -321,9 +358,9 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     features: list[dict[str, Any]] = []
     binary_switch: list[dict[str, str]] = []
     continuous_inputs: list[dict[str, Any]] = []
-    numeric_select: list[dict[str, Any]] = []
     ohe_ui: list[dict[str, Any]] = []
     active_ohe_keys: set[str] = set()
+    active_virtual_keys: set[str] = set()
     defaults: dict[str, Any] = {}
 
     for b in BINARY_VARIABLES:
@@ -333,7 +370,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
         r["inputKey"] = slugify(b)
         features.append(r)
         binary_switch.append({"key": r["inputKey"], "label": b})
-        defaults[r["inputKey"]] = 0
+        defaults[r["inputKey"]] = 1 if b in BINARY_DEFAULT_ONE else 0
 
     for c in CONTINUOUS_VARIABLES:
         if c not in nonzero:
@@ -382,6 +419,41 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
         )
         defaults[gkey] = ohe_default_value(group_name)
 
+    for group_name, spec in VIRTUAL_GROUPS.items():
+        # Same rule as OHE groups: show the control if any member column is live, then
+        # carry every member that exists in the bundle so the option set stays complete.
+        present = {
+            value: col for value, col in spec["columns"].items() if col in feature_name_set
+        }
+        if not any(col in nonzero for col in present.values()):
+            continue
+        gkey = slugify(group_name)
+        active_virtual_keys.add(gkey)
+
+        for value, col in present.items():
+            r = row_for(col)
+            r["inputKey"] = gkey
+            r["groupName"] = group_name
+            # For a virtual group the "suffix" is the option value that turns this
+            # column on, since the columns share no common name prefix.
+            r["oheSuffix"] = value
+            features.append(r)
+
+        ohe_ui.append(
+            {
+                "key": gkey,
+                "label": group_name,
+                "options": [
+                    {"label": label, "value": value}
+                    for label, value in spec["options"]
+                    if value not in spec["columns"] or value in present
+                ],
+            }
+        )
+        defaults[gkey] = spec["default"]
+
+    assert_all_nonzero_emitted(feature_names, coefs_raw, {f["name"] for f in features})
+
     baseline_model = cox_state["_baseline_models"][0]._state
     cum_hazard_state = baseline_model["cum_baseline_hazard_"]._state
     baseline_times = to_float_list(np.arange(0, 1826, 5))
@@ -399,10 +471,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     threshold_low_vals = np.asarray(thresholds_df["t_low"], dtype=float)
     threshold_high_vals = np.asarray(thresholds_df["t_high"], dtype=float)
     threshold_avg_col = find_threshold_average_column(thresholds_df)
-    if threshold_avg_col is not None:
-        threshold_average_vals = np.asarray(thresholds_df[threshold_avg_col], dtype=float)
-    else:
-        threshold_average_vals = (threshold_low_vals + threshold_high_vals) / 2.0
+    threshold_average_vals = np.asarray(thresholds_df[threshold_avg_col], dtype=float)
     t_idx = np.searchsorted(threshold_times, times, side="right") - 1
     t_idx = np.clip(t_idx, 0, len(threshold_times) - 1)
     threshold_low = threshold_low_vals[t_idx].tolist()
@@ -419,9 +488,9 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
         "threshold_average": threshold_average,
         "binary_switch": binary_switch,
         "continuous_inputs": continuous_inputs,
-        "numeric_select": numeric_select,
         "ohe_ui": ohe_ui,
         "active_ohe_keys": active_ohe_keys,
+        "active_virtual_keys": active_virtual_keys,
         "defaults": defaults,
     }
 
@@ -467,37 +536,45 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append(f"export const THRESHOLD_HIGH = {ts_array(data['threshold_high'])};")
     lines.append(f"export const THRESHOLD_AVERAGE = {ts_array(data['threshold_average'])};")
     lines.append("")
-    lines.append("export const BINARY_SWITCH_VARIABLES = [")
+    # These catalogues are annotated rather than `as const`: `[] as const` has element
+    # type `never`, so any .map() over one breaks as soon as a bundle leaves it empty.
+    lines.append("export interface SwitchVariable {")
+    lines.append("  key: string;")
+    lines.append("  label: string;")
+    lines.append("}")
+    lines.append("")
+    lines.append("export interface ContinuousVariable {")
+    lines.append("  key: string;")
+    lines.append("  label: string;")
+    lines.append("  min: number;")
+    lines.append("  max: number;")
+    lines.append("}")
+    lines.append("")
+    lines.append("export interface SelectVariable {")
+    lines.append("  key: string;")
+    lines.append("  label: string;")
+    lines.append("  options: readonly { label: string; value: string }[];")
+    lines.append("}")
+    lines.append("")
+    lines.append("export const BINARY_SWITCH_VARIABLES: readonly SwitchVariable[] = [")
     for v in data["binary_switch"]:
         lines.append(f"  {{ key: {ts_string(v['key'])}, label: {ts_string(v['label'])} }},")
-    lines.append("] as const;")
+    lines.append("];")
     lines.append("")
-    lines.append("export const BINARY_DROPDOWN_VARIABLES = [] as const;")
-    lines.append("")
-    lines.append("export const CONTINUOUS_INPUT_VARIABLES = [")
+    lines.append("export const CONTINUOUS_INPUT_VARIABLES: readonly ContinuousVariable[] = [")
     for v in data["continuous_inputs"]:
         lines.append(
             f"  {{ key: {ts_string(v['key'])}, label: {ts_string(v['label'])}, min: {fmt_number(v['min'])}, max: {fmt_number(v['max'])} }},"
         )
-    lines.append("] as const;")
+    lines.append("];")
     lines.append("")
-    lines.append("export const OHE_UI_VARIABLES = [")
+    lines.append("export const OHE_UI_VARIABLES: readonly SelectVariable[] = [")
     for cat in data["ohe_ui"]:
         lines.append(f"  {{ key: {ts_string(cat['key'])}, label: {ts_string(cat['label'])}, options: [")
         for opt in cat["options"]:
             lines.append(f"    {{ label: {ts_string(opt['label'])}, value: {ts_string(opt['value'])} }},")
         lines.append("  ] },")
-    lines.append("] as const;")
-    lines.append("")
-    lines.append("export const NUMERIC_SELECT_VARIABLES = [")
-    for field in data["numeric_select"]:
-        lines.append(f"  {{ key: {ts_string(field['key'])}, label: {ts_string(field['label'])}, options: [")
-        for opt in field["options"]:
-            lines.append(f"    {{ label: {ts_string(opt['label'])}, value: {opt['value']} }},")
-        lines.append("  ] },")
-    lines.append("] as const;")
-    lines.append("")
-    lines.append("export const GRADE_OPTIONS = [] as const;")
+    lines.append("];")
     lines.append("")
     lines.append("export interface PatientInput {")
     for k, v in data["defaults"].items():
@@ -532,13 +609,17 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("")
     lines.append('export type RiskCategory = "low" | "intermediate" | "average" | "high";')
     lines.append("")
+    lines.append("// Zone rule as shipped in the bundle's threshold_config: strict < at every")
+    lines.append("// boundary, mapping onto zone_1_low / zone_2_mid_low / zone_3_mid_high / zone_4_high.")
     lines.append("export function getRiskCategory(risk: number, timeIndex: number): RiskCategory {")
     lines.append('  if (timeIndex < 0 || timeIndex >= THRESHOLD_LOW.length) return "average";')
-    lines.append('  if (risk <= THRESHOLD_LOW[timeIndex]) return "low";')
-    lines.append('  if (risk <= THRESHOLD_AVERAGE[timeIndex]) return "intermediate";')
+    lines.append("  // Before the first observed event (day 75) every boundary sits at 0. A 0 == 0")
+    lines.append("  // tie is not a crossing, so it resolves to the lowest zone rather than the top one.")
+    lines.append('  if (risk === 0 && THRESHOLD_LOW[timeIndex] === 0) return "low";')
+    lines.append('  if (risk < THRESHOLD_LOW[timeIndex]) return "low";')
+    lines.append('  if (risk < THRESHOLD_AVERAGE[timeIndex]) return "intermediate";')
     lines.append('  if (risk < THRESHOLD_HIGH[timeIndex]) return "average";')
-    lines.append('  if (risk >= THRESHOLD_HIGH[timeIndex]) return "high";')
-    lines.append('  return "average";')
+    lines.append('  return "high";')
     lines.append("}")
     lines.append("")
     lines.append("function getRawValue(input: PatientInput, spec: FeatureSpec): number {")
@@ -549,7 +630,7 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append('  const v = String(input[spec.inputKey as keyof PatientInput]);')
     lines.append("  const s = spec.oheSuffix;")
     lines.append("  switch (spec.inputKey) {")
-    lines.append(emit_get_raw_value_body(data["active_ohe_keys"]))
+    lines.append(emit_get_raw_value_body(data["active_ohe_keys"], data["active_virtual_keys"]))
     lines.append("  }")
     lines.append("}")
     lines.append("")

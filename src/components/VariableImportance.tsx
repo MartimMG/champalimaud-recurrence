@@ -1,43 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BINARY_SWITCH_VARIABLES,
-  OHE_UI_VARIABLES,
-  type FeatureContribution,
-  type PatientInput,
-} from "@/lib/coxModel";
+import { type FeatureContribution, type PatientInput } from "@/lib/coxModel";
+import { formatUiVariableLabel, getValueLabelForGroup } from "@/lib/variableLabels";
 
 interface VariableImportanceProps {
   contributions: FeatureContribution[];
   input: PatientInput;
-}
-
-function formatUiVariableLabel(label: string): string {
-  if (label === "Radiotherapy (RT) performed") return "Radiotherapy";
-  if (label === "Endocrine therapy performed") return "Biological therapy";
-  if (label === "Treatment in association with chemotherapy") {
-    return "Hormone therapy associated with chemotherapy protocol";
-  }
-  if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
-  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status";
-  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry)";
-  return label.replace(/ at CB$/, "");
-}
-
-function getValueLabelForGroup(displayName: string, input: PatientInput): string {
-  const binary = BINARY_SWITCH_VARIABLES.find((v) => formatUiVariableLabel(v.label) === displayName);
-  if (binary) {
-    if (binary.key === "side_location_of_the_lesion") return input[binary.key] === 1 ? "Right" : "Left";
-    return input[binary.key] === 1 ? "Yes" : "No";
-  }
-
-  const ohe = OHE_UI_VARIABLES.find((v) => formatUiVariableLabel(v.label) === displayName);
-  if (ohe) {
-    const selected = String(input[ohe.key]);
-    const match = ohe.options.find((opt) => opt.value === selected);
-    return match?.label ?? selected;
-  }
-
-  return "N/A";
 }
 
 const ROW_HEIGHT = 40;

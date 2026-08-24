@@ -1,0 +1,47 @@
+\section{User Interface}
+\label{sec:user-interface}
+
+The production model was deployed as a web application intended for use by clinicians during follow-up consultations. Five requirements guided its development. First, the tool had to be reachable from any hospital workstation through a standard web browser, without installation, local configuration, or user accounts. Second, no patient data could be transmitted or stored, so that entering a patient's characteristics introduced no additional data-protection burden. Third, the predictions displayed had to be numerically identical to those produced by the fitted model in Python, since any discrepancy between the deployed calculator and the validated model would invalidate the reported performance. Fourth, the interface had to convey both the predicted risk trajectory and the contribution of each variable to that prediction, rather than a single number. Fifth, the application had to be regenerable whenever the model was refitted, without manual transcription of coefficients.
+
+\subsection{Implementation}
+
+The application was implemented as a single-page application written in TypeScript using the React framework, bundled with Vite, and styled with Tailwind CSS over accessible Radix UI primitives; charts were rendered with Recharts. The software components required to build and run it are summarised in \autoref{tab:webapp-stack}. The build produces a set of static files (HTML, JavaScript, and CSS) that can be served by any static web host, so no application server, database, or authentication infrastructure is required.
+
+\begin{table}[H]
+\centering
+\caption{Software components required to build and run the web application.}
+\label{tab:webapp-stack}
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Software} & \textbf{Version} \
+\midrule
+Runtime and package manager & Node.js / npm & 22.20.0 / 10.9.3 \
+Language & TypeScript & 5.8.3 \
+User-interface framework & React & 18.3.1 \
+Build tool & Vite & 5.4.19 \
+Styling & Tailwind CSS & 3.4.17 \
+Interface components & Radix UI primitives & --- \
+Charting & Recharts & 2.15.4 \
+Testing & Vitest & 3.2.4 \
+Model export script & Python (NumPy, pandas) & 3.13 \
+\bottomrule
+\end{tabular}
+\end{table}
+
+Because the model is embedded in the delivered JavaScript bundle, all computation is performed locally in the clinician's browser. Values entered into the form are held in memory for the duration of the session only; they are never sent over the network and never written to persistent storage.
+
+\subsection{Model Export and Verification}
+
+The production model was serialised in Python as a single bundle containing the Coxnet coefficients, the min--max scaling parameters, the Breslow estimate of the baseline cumulative hazard evaluated on a five-day grid spanning the prediction horizon, and the three time-varying risk boundaries. A Python script reads this bundle and automatically generates the corresponding TypeScript module, so that the coefficients used by the calculator are, by construction, those of the fitted model. For a patient with scaled covariate vector $x$, the predicted cumulative risk at horizon $t$ was reconstructed in the browser as
+\begin{equation}
+    \widehat{R}(t) = 1 - \exp\!\left[-\widehat{H}_0(t)\,\exp\!\left(\hat{\beta}^{\top}x - \mu\right)\right],
+\end{equation}
+where $\widehat{H}_0(t)$ is the baseline cumulative hazard and $\mu$ is the centring offset carried in the bundle, corresponding to the linear predictor of the mean covariate vector of the fitting sample. Risk zones were assigned by comparing $\widehat{R}(t)$ with the three boundaries at the same horizon, applying the same rule used during threshold derivation.
+
+Equivalence between the deployed calculator and the fitted model was verified by an automated test suite. Reference patients were scored in Python with the pickled model, and the resulting risks and risk-zone assignments at each annual horizon were stored as fixtures; the test suite requires the browser implementation to reproduce them to twelve decimal places. Additional tests verify that every non-zero coefficient is reachable from a form field, so that no retained predictor can be silently omitted from the interface, and that the four risk zones are each exercised by at least one reference patient. These tests are re-run whenever the model is exported.
+
+\subsection{Layout}
+
+The calculator is organised as three panels. Clinical variables (lesion location and core-biopsy findings) are entered on the left and treatment variables (radiotherapy and systemic therapy) on the right, with binary variables presented as switches, continuous variables as numeric fields, and categorical variables as drop-down menus. The central panel displays the results and updates immediately after any change, so that the effect of a variable can be inspected interactively. It offers two views: the predicted cumulative risk curve over the prediction horizon, overlaid on the shaded time-varying risk zones, and a variable-importance chart showing the signed contribution of each variable to the linear predictor for the patient currently entered, ordered by magnitude. A landing page precedes the calculator, stating the intended population, the dataset and modelling approach used, and that the tool is intended for research purposes only.
+
+[PLACEHOLDER: Figure with a screenshot of the web application interface.]

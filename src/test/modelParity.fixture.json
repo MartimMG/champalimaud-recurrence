@@ -1,0 +1,2174 @@
+{
+  "reportDays": [
+    365,
+    730,
+    1095,
+    1460,
+    1825
+  ],
+  "cases": [
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0009636657267808602,
+        0.0020891143541480472,
+        0.0037848471617565327,
+        0.005883060727785772,
+        0.008206172043368931
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002111857153974217,
+        0.004575184775475694,
+        0.008280469681122615,
+        0.012854798847812487,
+        0.017906012954720385
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.00032320801321017445,
+        0.0007009395417134634,
+        0.0012706092636791677,
+        0.0019763825125945766,
+        0.0027589603298405763
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.00034800995263173373,
+        0.0007547164353707281,
+        0.001368061951375843,
+        0.0021279086237995237,
+        0.002970396095470784
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0004330065099898972,
+        0.0009389986917277549,
+        0.0017019797413747595,
+        0.002647044516610131,
+        0.003694688877795227
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0034939888925855644,
+        0.007563351351866365,
+        0.013671973664422632,
+        0.021192707671775612,
+        0.029470989925637125
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0014322032934986906,
+        0.0031039981512684944,
+        0.005621188108128505,
+        0.008732946319604529,
+        0.012174513487256178
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0004920557472194442,
+        0.0010670134065807746,
+        0.0019339117712943166,
+        0.0030075681966897916,
+        0.00419759967373623
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0009095388002589022,
+        0.001971835936639743,
+        0.0035725444729521882,
+        0.005553391809376196,
+        0.007746831050577052
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.003344977686376427,
+        0.007241422233314809,
+        0.013091755420441165,
+        0.020296619664954774,
+        0.02822995067460521
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003514511172727497,
+        0.0007621776296591332,
+        0.0013815825411417348,
+        0.0021489307130547752,
+        0.0029997287902396863
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003200433411101322,
+        0.0006940776179250596,
+        0.0012581740081101245,
+        0.0019570467343672515,
+        0.0027319787501572934
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003200433411101322,
+        0.0006940776179250596,
+        0.0012581740081101245,
+        0.0019570467343672515,
+        0.0027319787501572934
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005298110827458569,
+        0.001148859762481802,
+        0.002082185116077939,
+        0.003238025331790517,
+        0.004519036984522051
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0014322032934986906,
+        0.0031039981512684944,
+        0.005621188108128505,
+        0.008732946319604529,
+        0.012174513487256178
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.005511572331699521,
+        0.011916671763508746,
+        0.02150300472800759,
+        0.033258238490269765,
+        0.046137212541351835
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.00034800995263173373,
+        0.0007547164353707281,
+        0.001368061951375843,
+        0.0021279086237995237,
+        0.002970396095470784
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003200433411101322,
+        0.0006940776179250596,
+        0.0012581740081101245,
+        0.0019570467343672515,
+        0.0027319787501572934
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0013301845974736937,
+        0.002883066213808072,
+        0.005221561033520672,
+        0.008112999152079636,
+        0.011311648597477908
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.00172623837563457,
+        0.003740613623119171,
+        0.006772310937126713,
+        0.010517925324990518,
+        0.014657716715775204
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.005991832510005568,
+        0.012951404769111274,
+        0.0233602296657206,
+        0.036111874999559146,
+        0.05006695801565053
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006660297919003355,
+        0.001444125859449641,
+        0.0026170088162583705,
+        0.004069128738938832,
+        0.005677999726310445
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.00034800995263173373,
+        0.0007547164353707281,
+        0.001368061951375843,
+        0.0021279086237995237,
+        0.002970396095470784
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005974755948208177,
+        0.0012955344565590554,
+        0.002347877145194799,
+        0.0036509354385193538,
+        0.00509488259750468
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002296219364370189,
+        0.004974055444579073,
+        0.00900090831920719,
+        0.013970412682138056,
+        0.019455661770455657
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0009185298787127705,
+        0.0019913176875494543,
+        0.003607812623703577,
+        0.005608159780125521,
+        0.007823145654692332
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0008447347900887303,
+        0.001831413394339898,
+        0.003318318553564459,
+        0.005158572064589806,
+        0.007196633323923729
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0010478450402061634,
+        0.0022714934101738526,
+        0.0041149576567406365,
+        0.006395586962593014,
+        0.008920175566369704
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.004240954409316711,
+        0.009176274199987566,
+        0.016576667145209223,
+        0.02567430382458258,
+        0.03567102287804724
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006330374302659925,
+        0.0013726163161269511,
+        0.0024874933902112595,
+        0.003867887555535021,
+        0.005397406722946418
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0008922378847470158,
+        0.0019343479630716809,
+        0.0035046777705584065,
+        0.0054479984602315845,
+        0.007599969510458937
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.00028441849527671703,
+        0.0006168309035593511,
+        0.0011181818514534037,
+        0.001739361450211363,
+        0.0024282015086616315
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0035545848105350553,
+        0.007694248836512929,
+        0.013907848629989394,
+        0.021556908766219074,
+        0.029975262390734336
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.008182242580128007,
+        0.017663290944380017,
+        0.03179749775040808,
+        0.04903777757638084,
+        0.06780936974162632
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006033827614417842,
+        0.0013083387249606115,
+        0.002371069770160661,
+        0.003686976032047262,
+        0.005145140422680994
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.0030307301989273006,
+        0.006562326282697373,
+        0.01186730753116183,
+        0.018404623164583467,
+        0.025608147178350138
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005974755948208177,
+        0.0012955344565590554,
+        0.002347877145194799,
+        0.0036509354385193538,
+        0.00509488259750468
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006033827614417842,
+        0.0013083387249606115,
+        0.002371069770160661,
+        0.003686976032047262,
+        0.005145140422680994
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.0030307301989273006,
+        0.006562326282697373,
+        0.01186730753116183,
+        0.018404623164583467,
+        0.025608147178350138
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.017448053063754076,
+        0.03746102416565211,
+        0.06688870930242807,
+        0.10212447825401072,
+        0.1396686298569344
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0007433779833335707,
+        0.0016117639606676448,
+        0.00292059914549736,
+        0.004540790714643861,
+        0.006335555599947362
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.000517376710136852,
+        0.001121904816894892,
+        0.0020333544675841253,
+        0.0031621313156386943,
+        0.004413184681206994
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002296219364370189,
+        0.004974055444579073,
+        0.00900090831920719,
+        0.013970412682138056,
+        0.019455661770455657
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.00044907184167952696,
+        0.0009738281095241774,
+        0.0017650847053012342,
+        0.0027451418064751154,
+        0.0038315363661221014
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006660297919003355,
+        0.001444125859449641,
+        0.0026170088162583705,
+        0.004069128738938832,
+        0.005677999726310445
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0017402503194277053,
+        0.003770945416720406,
+        0.006827141710128437,
+        0.010602919520114384,
+        0.014775913533044971
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003514511172727497,
+        0.0007621776296591332,
+        0.0013815825411417348,
+        0.0021489307130547752,
+        0.0029997287902396863
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "4",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.005139736444242704,
+        0.011115140342591867,
+        0.020063261784856734,
+        0.03104399199791763,
+        0.04308480028136097
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005548996974096276,
+        0.001203245088014615,
+        0.002180704431220426,
+        0.0033911406353733797,
+        0.004732583059986029
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.00025900037951920307,
+        0.0005617138647335818,
+        0.001018289334948519,
+        0.0015840200138551586,
+        0.0022114083094650905
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006883452447408178,
+        0.0014924920914358708,
+        0.002704603661346061,
+        0.00420522545041857,
+        0.005867748266374706
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.00026156152184886317,
+        0.0005672675599472932,
+        0.00102835489343589,
+        0.0015996732124743396,
+        0.0022332543875051014
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006883452447408178,
+        0.0014924920914358708,
+        0.002704603661346061,
+        0.00420522545041857,
+        0.005867748266374706
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002132720836658941,
+        0.0046203280191385865,
+        0.008362019014676036,
+        0.012981102267673461,
+        0.01808149020905858
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005548996974096276,
+        0.001203245088014615,
+        0.002180704431220426,
+        0.0033911406353733797,
+        0.004732583059986029
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0018586041956114574,
+        0.004027127367672523,
+        0.007290187579458762,
+        0.011320591429499371,
+        0.01577378039311028
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003514511172727497,
+        0.0007621776296591332,
+        0.0013815825411417348,
+        0.0021489307130547752,
+        0.0029997287902396863
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.0017661993386421937,
+        0.0038271162013796545,
+        0.006928678033487179,
+        0.010760305963496863,
+        0.014994771693496833
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005350494378753012,
+        0.0011602152303029634,
+        0.00210275596858589,
+        0.0032699965317745106,
+        0.004563627490135613
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0004883107031692369,
+        0.001058894669358601,
+        0.0019192032800553482,
+        0.0029847061600232205,
+        0.004165710525260602
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0028563584359438954,
+        0.006185396971154611,
+        0.011187389105179912,
+        0.017353461396774517,
+        0.02415065043035114
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.000683649859053781,
+        0.0014823154764074253,
+        0.0026861733409051514,
+        0.004176590687240189,
+        0.005827826006617909
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005494670534612611,
+        0.0011914687218428366,
+        0.002159371849428493,
+        0.0033579869893869407,
+        0.004686345604421049
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "neo"
+      },
+      "risks": [
+        0.004610753969398362,
+        0.009974259218866521,
+        0.018012327990126198,
+        0.027886642552981233,
+        0.03872750435380934
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.008667287949120417,
+        0.01870504976880094,
+        0.03365847450451076,
+        0.051880394043040345,
+        0.07169844953917381
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002132720836658941,
+        0.0046203280191385865,
+        0.008362019014676036,
+        0.012981102267673461,
+        0.01808149020905858
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.003623416184924344,
+        0.007842925018200497,
+        0.014175729804170034,
+        0.02197047008417896,
+        0.030547788736302928
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.022500457713205857,
+        0.048164736355252424,
+        0.08561859890559931,
+        0.13001090042108487,
+        0.17675272588990365
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.0008881963892101163,
+        0.0019255906594690675,
+        0.0034888236056470623,
+        0.0054233772173062356,
+        0.007565659875140351
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0007242190697246409,
+        0.0015702419222688446,
+        0.002845407158774571,
+        0.004423978881636703,
+        0.006172716779628495
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006033827614417842,
+        0.0013083387249606115,
+        0.002371069770160661,
+        0.003686976032047262,
+        0.005145140422680994
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006392960798480285,
+        0.001386181885544513,
+        0.0025120634248554374,
+        0.0039060656137391847,
+        0.00545064057659761
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.00048723821548246615,
+        0.0010565696579249995,
+        0.0019149911033653488,
+        0.002978158959234034,
+        0.0041565780983428
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.002111857153974217,
+        0.004575184775475694,
+        0.008280469681122615,
+        0.012854798847812487,
+        0.017906012954720385
+      ],
+      "zones": [
+        "average",
+        "average",
+        "average",
+        "average",
+        "average"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0003200433411101322,
+        0.0006940776179250596,
+        0.0012581740081101245,
+        0.0019570467343672515,
+        0.0027319787501572934
+      ],
+      "zones": [
+        "low",
+        "low",
+        "low",
+        "low",
+        "low"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0011816308348649995,
+        0.0025613106352103676,
+        0.004639432888321915,
+        0.007209687686208777,
+        0.01005400421051339
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "4",
+        "biological_therapy": "adj"
+      },
+      "risks": [
+        0.009575102198197127,
+        0.020653211871655253,
+        0.03713432154211771,
+        0.05718155345716924,
+        0.07893879540678883
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "1",
+        "isotype_at_cb": "3",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0006660297919003355,
+        0.001444125859449641,
+        0.0026170088162583705,
+        0.004069128738938832,
+        0.005677999726310445
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "4",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0013171666719293817,
+        0.002854872664057262,
+        0.0051705586719477115,
+        0.008033868497125507,
+        0.011201496296912028
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.000672614517200687,
+        0.001458397641620035,
+        0.0026428564346006045,
+        0.004109289052022125,
+        0.005733993043368635
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 0,
+        "grade_at_cb": "3",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.007258725243507236,
+        0.015678154423424573,
+        0.028246845496246675,
+        0.04360577510004027,
+        0.060364842352034986
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 1,
+        "radiotherapy_on_supraclavicular_area": 1,
+        "treatment_in_association_with_chemotherapy": 1,
+        "oestrogen_receptor_status_at_cb": 1,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "2",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.0005548996974096276,
+        0.001203245088014615,
+        0.002180704431220426,
+        0.0033911406353733797,
+        0.004732583059986029
+      ],
+      "zones": [
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate",
+        "intermediate"
+      ]
+    },
+    {
+      "input": {
+        "radiotherapy_rt_performed": 0,
+        "radiotherapy_on_supraclavicular_area": 0,
+        "treatment_in_association_with_chemotherapy": 0,
+        "oestrogen_receptor_status_at_cb": 0,
+        "side_location_of_the_lesion": 1,
+        "grade_at_cb": "2",
+        "isotype_at_cb": "1",
+        "biological_therapy": "none"
+      },
+      "risks": [
+        0.004390645593479903,
+        0.009499332345152989,
+        0.01715799680823027,
+        0.0265703434153699,
+        0.036909288393718875
+      ],
+      "zones": [
+        "high",
+        "high",
+        "high",
+        "high",
+        "high"
+      ]
+    }
+  ],
+  "thresholdsAt1825": {
+    "low": 0.003177125385747183,
+    "intermediate": 0.013157468043753022,
+    "high": 0.0239169941267956
+  }
+}

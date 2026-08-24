@@ -6,31 +6,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BINARY_SWITCH_VARIABLES,
-  BINARY_DROPDOWN_VARIABLES,
   CONTINUOUS_INPUT_VARIABLES,
   OHE_UI_VARIABLES,
-  NUMERIC_SELECT_VARIABLES,
   type PatientInput,
 } from "@/lib/coxModel";
+import { formatUiVariableLabel } from "@/lib/variableLabels";
 
 type VariableGroup = "clinical" | "treatment";
 
 const SECTION_LOCATION_NODES = "Locoregional status";
 
+// Hand-maintained: a field generated into coxModel.ts but missing here renders nowhere.
 const VARIABLE_META: Record<string, { group: VariableGroup; section: string }> = {
   // Clinical
   side_location_of_the_lesion: { group: "clinical", section: SECTION_LOCATION_NODES },
-  n_regional_nodes_affected: { group: "clinical", section: SECTION_LOCATION_NODES },
   grade_at_cb: { group: "clinical", section: "Core biopsy findings" },
   oestrogen_receptor_status_at_cb: { group: "clinical", section: "Core biopsy findings" },
-  her2_overexpression_with_immunohystochemistry_at_cb: { group: "clinical", section: "Core biopsy findings" },
   isotype_at_cb: { group: "clinical", section: "Core biopsy findings" },
   // Treatment
   radiotherapy_rt_performed: { group: "treatment", section: "Radiotherapy" },
   radiotherapy_on_supraclavicular_area: { group: "treatment", section: "Radiotherapy" },
-  total_administered_dose: { group: "treatment", section: "Radiotherapy" },
-  adjuvant_therapy_using_biological_drugs: { group: "treatment", section: "Systemic therapy" },
-  endocrine_therapy_performed: { group: "treatment", section: "Systemic therapy" },
+  biological_therapy: { group: "treatment", section: "Systemic therapy" },
   treatment_in_association_with_chemotherapy: { group: "treatment", section: "Systemic therapy" },
 };
 
@@ -50,21 +46,8 @@ interface PatientFormProps {
   group: VariableGroup;
 }
 
-function formatUiVariableLabel(label: string): string {
-  if (label === "Radiotherapy (RT) performed") return "Radiotherapy";
-  if (label === "Endocrine therapy performed") return "Biological therapy";
-  if (label === "Treatment in association with chemotherapy") {
-    return "Hormone therapy associated with chemotherapy protocol";
-  }
-  if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
-  if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status";
-  if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry)";
-  return label.replace(/ at CB$/, "");
-}
-
 type FieldItem =
   | { kind: "switch"; key: string; label: string }
-  | { kind: "select"; key: string; label: string; options: readonly { label: string; value: number }[] }
   | { kind: "continuous"; key: string; label: string; min: number; max: number }
   | { kind: "ohe"; key: string; label: string; options: readonly { label: string; value: string }[] };
 
@@ -126,8 +109,6 @@ function ContinuousField({ field, value, onChange }: ContinuousFieldProps) {
 
 const ALL_FIELDS: FieldItem[] = [
   ...BINARY_SWITCH_VARIABLES.map((v): FieldItem => ({ kind: "switch", key: v.key, label: v.label })),
-  ...BINARY_DROPDOWN_VARIABLES.map((v): FieldItem => ({ kind: "select", key: v.key, label: v.label, options: v.options })),
-  ...NUMERIC_SELECT_VARIABLES.map((v): FieldItem => ({ kind: "select", key: v.key, label: v.label, options: v.options })),
   ...CONTINUOUS_INPUT_VARIABLES.map((v): FieldItem => ({ kind: "continuous", key: v.key, label: v.label, min: v.min, max: v.max })),
   ...OHE_UI_VARIABLES.map((v): FieldItem => ({ kind: "ohe", key: v.key, label: v.label, options: v.options })),
 ];
@@ -137,8 +118,8 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
     onChange({ ...input, [key]: value });
   };
 
-  const binarySwitchIndicators: Partial<Record<(typeof BINARY_SWITCH_VARIABLES)[number]["key"], { off: string; on: string }>> = {
-    progesterone_receptor_status_at_cb: { off: "-", on: "+" },
+  const binarySwitchIndicators: Record<string, { off: string; on: string } | undefined> = {
+    oestrogen_receptor_status_at_cb: { off: "-", on: "+" },
     side_location_of_the_lesion: { off: "L", on: "R" },
   };
 
@@ -155,7 +136,7 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
     switch (field.kind) {
       case "switch": {
         const key = field.key as keyof PatientInput;
-        const indicators = binarySwitchIndicators[field.key as (typeof BINARY_SWITCH_VARIABLES)[number]["key"]];
+        const indicators = binarySwitchIndicators[field.key];
         return (
           <div
             key={field.key}
@@ -176,7 +157,12 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
               id={field.key}
               checked={input[key] === 1}
               onCheckedChange={(checked) => updateField(key, checked ? 1 : 0)}
-              className={field.key === "side_location_of_the_lesion" ? "data-[state=checked]:bg-input" : undefined}
+              className={
+                field.key === "side_location_of_the_lesion" ||
+                field.key === "oestrogen_receptor_status_at_cb"
+                  ? "data-[state=checked]:bg-input"
+                  : undefined
+              }
             />
             {indicators?.on && (
               <span className="text-xs text-muted-foreground tabular-nums min-w-3">
@@ -186,27 +172,6 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
           </div>
         );
       }
-      case "select":
-        return (
-          <div key={field.key} className="space-y-1.5">
-            <Label className="text-sm font-medium">{formatUiVariableLabel(field.label)}</Label>
-            <Select
-              value={String(input[field.key as keyof PatientInput])}
-              onValueChange={(v) => updateField(field.key as keyof PatientInput, Number(v))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {field.options.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        );
       case "continuous":
         return (
           <ContinuousField

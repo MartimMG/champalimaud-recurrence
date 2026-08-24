@@ -34,7 +34,7 @@ const Landing = () => {
             <details className="rounded-md border border-border/60 bg-muted/20 px-4 py-3">
               <summary className="cursor-pointer text-sm font-medium text-foreground">About the model</summary>
               <p className="mt-2 text-sm text-muted-foreground">
-                This model was developed using a dataset of 3227 breast cancer patients using the BreastCare dataset from Champalimaud Foundation. The model was trained using a Cox proportional hazards model. It uses LASSO regularization to select the most important features.
+                This model was developed using a dataset of 3228 breast cancer patients using the BreastCare dataset from Champalimaud Foundation. The model was trained using a Cox proportional hazards model. It uses LASSO regularization to select the most important features.
               </p>
             </details>
 
