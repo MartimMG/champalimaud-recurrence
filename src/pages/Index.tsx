@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import PatientForm from "@/components/PatientForm";
 import RiskCurve from "@/components/RiskCurve";
 import VariableImportance from "@/components/VariableImportance";
 import { computeRisk, DEFAULT_INPUT, type PatientInput } from "@/lib/coxModel";
-import { Activity, BarChart3 } from "lucide-react";
+import { Activity, BarChart3, Info } from "lucide-react";
 
 const Index = () => {
   const [input, setInput] = useState<PatientInput>(DEFAULT_INPUT);
@@ -29,6 +31,12 @@ const Index = () => {
               Cox proportional hazards model · Dynamic risk prediction
             </p>
           </div>
+          <Button asChild variant="outline" size="sm" className="ml-auto gap-1.5">
+            <Link to="/#methodology">
+              <Info className="h-3.5 w-3.5" />
+              About the model
+            </Link>
+          </Button>
         </div>
       </header>
 
