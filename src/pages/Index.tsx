@@ -43,7 +43,7 @@ const Index = () => {
       <main className="max-w-[1920px] mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Clinical variables — scrolls independently so the results stay reachable */}
-          <div className="order-1 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+          <div className="order-1 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start">
             <PatientForm input={input} onChange={setInput} group="clinical" />
           </div>
 
@@ -73,7 +73,7 @@ const Index = () => {
           </div>
 
           {/* Right: Treatment variables — scrolls independently so the results stay reachable */}
-          <div className="order-2 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+          <div className="order-2 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start">
             <PatientForm input={input} onChange={setInput} group="treatment" />
           </div>
         </div>

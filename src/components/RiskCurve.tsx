@@ -120,7 +120,7 @@ function RiskChartTooltip({
   return (
     <div className="rounded-lg border border-border/80 bg-card/95 px-3 py-2.5 text-sm shadow-lg ring-1 ring-black/5 backdrop-blur-sm dark:ring-white/10">
       <p className="text-muted-foreground mb-2 text-xs font-medium">
-        {label != null && label !== "" ? `${label} years` : ""}
+        {label != null && label !== "" ? formatYearsAndMonthsFromDays(Number(label) * 365) : ""}
       </p>
       {sortedRows.map(({ key, text, dotClass, valueClass }) => (
         <div key={key} className="flex items-center justify-between gap-8 tabular-nums py-0.5">
@@ -273,8 +273,8 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
   return (
     <div className="space-y-4">
       <Card className="border-border/60 shadow-md">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold tracking-tight">
+        <CardHeader className="px-4 pt-4 pb-2">
+          <CardTitle className="text-base font-semibold tracking-tight">
             Cumulative Risk Over Time
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -284,8 +284,8 @@ const RiskCurve = ({ survivalCurve }: RiskCurveProps) => {
             <span className="text-red-600">red</span> = high
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="h-[380px] w-full">
+        <CardContent className="px-4 pb-4">
+          <div className="h-[340px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartDataWithZones} margin={{ top: 10, right: 10, left: 0, bottom: 26 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

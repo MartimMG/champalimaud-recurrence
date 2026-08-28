@@ -7,9 +7,9 @@ interface VariableImportanceProps {
   input: PatientInput;
 }
 
-const ROW_HEIGHT = 40;
+const ROW_HEIGHT = 36;
 const LABEL_WIDTH = 250;
-const BAR_HEIGHT = 20;
+const BAR_HEIGHT = 18;
 const TICK_COUNT = 9;
 
 function toPercent(value: number, domainMin: number, domainMax: number): number {
@@ -78,8 +78,8 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
 
   return (
     <Card className="border-border/60 shadow-md">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold tracking-tight">
+      <CardHeader className="px-4 pt-4 pb-2">
+        <CardTitle className="text-base font-semibold tracking-tight">
           Variable Contributions to Risk
         </CardTitle>
         <p className="text-sm text-muted-foreground">
@@ -91,7 +91,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
           is protective.
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4">
         {/* Purely decorative — the actual data is exposed to assistive tech via the
             sr-only table below, so screen readers skip this whole visual chart. */}
         <div aria-hidden="true">

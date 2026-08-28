@@ -75,10 +75,6 @@ const Landing = () => {
         <section className="mb-8 animate-in fade-in slide-in-from-bottom-4 text-center duration-700 sm:mb-10">
           <div className="mb-4 flex items-center justify-center gap-3">
             <img src="/logo.png" alt="App logo" className="h-12 w-12 rounded-xl object-cover shadow-sm" />
-            <Badge variant="secondary" className="gap-1.5 py-1">
-              <FlaskConical className="h-3.5 w-3.5" />
-              Research tool
-            </Badge>
           </div>
           <h1 className="mx-auto max-w-3xl bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-2xl font-semibold tracking-tight text-transparent sm:text-4xl">
             Breast Cancer Regional Recurrence Risk Calculator
@@ -86,7 +82,7 @@ const Landing = () => {
           <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
             Estimates five-year <strong className="font-medium text-foreground">regional lymph-node
             recurrence</strong> risk in early breast cancer, from a model fitted on 3,228 records from the
-            Champalimaud Foundation. For research purposes only — not a medical device.
+            Champalimaud Foundation.
           </p>
 
           <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -104,7 +100,7 @@ const Landing = () => {
           <div className="mx-auto mt-8 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">
             <StatChip label="Lesion records" value="3,228" />
             <StatChip label="5-yr recurrences" value="27" />
-            <StatChip label="C-index (OOB)" value="0.898" />
+            <StatChip label="C-index (95% CI)" value="0.91 (0.86–0.96)" />
             <StatChip label="Time horizon" value="5 years" />
           </div>
         </section>
@@ -118,11 +114,6 @@ const Landing = () => {
                 <strong className="font-medium text-foreground">regional lymph-node recurrence</strong> in
                 early breast cancer, over the five years following diagnosis. It was developed for female
                 patients with early breast cancer who have completed treatment.
-              </p>
-              <p className="text-sm text-muted-foreground sm:text-base">
-                This tool was designed for <strong>research purposes</strong> only. It is not a medical
-                device, it has not been externally validated, and it must not be used on its own to make
-                decisions about an individual patient.
               </p>
               <p className="text-sm text-muted-foreground sm:text-base">
                 Some variables may not be directly related with the shown impact, but may have some

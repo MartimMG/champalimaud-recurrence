@@ -140,7 +140,7 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
         return (
           <div
             key={field.key}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-2"
+            className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-1.5"
           >
             <Label
               htmlFor={field.key}
@@ -206,19 +206,19 @@ const PatientForm = ({ input, onChange, group }: PatientFormProps) => {
   };
 
   return (
-    <Card className="border-border/60 shadow-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold tracking-tight">
+    <Card className="flex flex-col border-border/60 shadow-md lg:max-h-[calc(100vh-96px)]">
+      <CardHeader className="shrink-0 px-4 pt-4 pb-2">
+        <CardTitle className="text-base font-semibold tracking-tight">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
         {sections.map((section, index) => (
-          <div key={section.name} className={index > 0 ? "border-t border-border/40 pt-3" : undefined}>
+          <div key={section.name} className={index > 0 ? "border-t border-border/40 pt-2.5" : undefined}>
             <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground/70">
               {section.name}
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {section.fields.map((field) => renderField(field))}
             </div>
           </div>
