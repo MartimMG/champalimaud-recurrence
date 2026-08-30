@@ -127,16 +127,14 @@ const Landing = () => {
                 A LASSO-penalised Cox proportional hazards model was fitted to 3,228 early breast cancer
                 records (2,971 patients) from the BreastCare database of the Champalimaud Foundation, with
                 follow-up administratively censored at five years. Within that window there were{" "}
-                <strong className="font-medium text-foreground">27 regional recurrences</strong>. The penalty
-                kept 9 of 30 candidate variables. The calculator turns the model&apos;s predicted absolute
-                risk into four risk zones using three threshold curves, and the high-risk boundary is set so
-                that the top 15% of the cohort by predicted five-year risk is flagged. Everything below
+                <strong className="font-medium text-foreground">27 regional recurrences</strong>. The calculator turns the model&apos;s predicted absolute
+                risk into four risk zones using three threshold curves. Everything below
                 states how each of those steps was done, what was measured, and what was rejected along the
                 way.
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
                 The event count is small. Every number on this page should be read together with its
-                confidence interval, and the limitations section is not boilerplate.
+                confidence interval.
               </p>
             </div>
 
