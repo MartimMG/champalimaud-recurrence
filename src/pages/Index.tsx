@@ -40,7 +40,7 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="max-w-[1920px] mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Clinical variables — scrolls independently so the results stay reachable */}
           <div className="order-1 lg:order-none lg:col-span-3 lg:sticky lg:top-[76px] lg:self-start">
@@ -50,14 +50,14 @@ const Index = () => {
           {/* Middle: Results — ordered last on mobile so both variable panels are filled in first */}
           <div className="order-3 lg:order-none lg:col-span-6">
             <Tabs defaultValue="risk" className="w-full">
-              <TabsList className="mb-4">
+              <TabsList className="mb-1">
                 <TabsTrigger value="risk" className="gap-1.5">
                   <Activity className="h-3.5 w-3.5" />
                   Risk Curve
                 </TabsTrigger>
                 <TabsTrigger value="importance" className="gap-1.5">
                   <BarChart3 className="h-3.5 w-3.5" />
-                  Variable Importance
+                  Variable Contributions
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="risk">

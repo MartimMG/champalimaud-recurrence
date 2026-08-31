@@ -8,24 +8,26 @@ export interface FeatureSpec {
   dataMax: number;
   scalerScale: number;
   scalerMin: number;
+  dataMean: number;
+  category: "diagnostic" | "treatment";
   inputKey: string;
   groupName?: string;
   oheSuffix?: string;
 }
 
 export const FEATURES: FeatureSpec[] = [
-  { name: "Radiotherapy (RT) performed", coef: -0.7330510388661428, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "radiotherapy_rt_performed" },
-  { name: "Radiotherapy on supraclavicular area", coef: 0.5406071405824785, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "radiotherapy_on_supraclavicular_area" },
-  { name: "Treatment in association with chemotherapy", coef: 0.009841274856393785, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "treatment_in_association_with_chemotherapy" },
-  { name: "Oestrogen receptor status at CB", coef: -1.88776339541477, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "oestrogen_receptor_status_at_cb" },
-  { name: "Side location of the lesion", coef: -0.083788638489603, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "side_location_of_the_lesion" },
-  { name: "Grade at CB_2.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "grade_at_cb", groupName: "Grade at CB", oheSuffix: "2.0" },
-  { name: "Grade at CB_3.0", coef: 0.42038035029815696, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "grade_at_cb", groupName: "Grade at CB", oheSuffix: "3.0" },
-  { name: "Isotype at CB_2.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "2.0" },
-  { name: "Isotype at CB_3.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "3.0" },
-  { name: "Isotype at CB_4.0", coef: 0.6822296835659574, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "4.0" },
-  { name: "Neoadjuvant (Only) therapy with biological drugs", coef: 1.6152226168771548, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "biological_therapy", groupName: "Biological therapy", oheSuffix: "neo" },
-  { name: "Adjuvant therapy using biological drugs", coef: -0.21165742941491703, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, inputKey: "biological_therapy", groupName: "Biological therapy", oheSuffix: "adj" },
+  { name: "Radiotherapy (RT) performed", coef: -0.7330510388661428, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.8701982651796778, category: "treatment", inputKey: "radiotherapy_rt_performed" },
+  { name: "Radiotherapy on supraclavicular area", coef: 0.5406071405824785, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.2645600991325898, category: "treatment", inputKey: "radiotherapy_on_supraclavicular_area" },
+  { name: "Treatment in association with chemotherapy", coef: 0.009841274856393785, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.3828996282527881, category: "treatment", inputKey: "treatment_in_association_with_chemotherapy" },
+  { name: "Oestrogen receptor status at CB", coef: -1.88776339541477, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.8224907063197026, category: "diagnostic", inputKey: "oestrogen_receptor_status_at_cb" },
+  { name: "Side location of the lesion", coef: -0.083788638489603, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.4770755885997522, category: "diagnostic", inputKey: "side_location_of_the_lesion" },
+  { name: "Grade at CB_2.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.5988228004956629, category: "diagnostic", inputKey: "grade_at_cb", groupName: "Grade at CB", oheSuffix: "2.0" },
+  { name: "Grade at CB_3.0", coef: 0.42038035029815696, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.21344485749690212, category: "diagnostic", inputKey: "grade_at_cb", groupName: "Grade at CB", oheSuffix: "3.0" },
+  { name: "Isotype at CB_2.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.11121437422552664, category: "diagnostic", inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "2.0" },
+  { name: "Isotype at CB_3.0", coef: 0.0, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.013011152416356878, category: "diagnostic", inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "3.0" },
+  { name: "Isotype at CB_4.0", coef: 0.6822296835659574, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.16883519206939282, category: "diagnostic", inputKey: "isotype_at_cb", groupName: "Isotype at CB", oheSuffix: "4.0" },
+  { name: "Neoadjuvant (Only) therapy with biological drugs", coef: 1.6152226168771548, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.0563816604708798, category: "treatment", inputKey: "biological_therapy", groupName: "Biological therapy", oheSuffix: "neo" },
+  { name: "Adjuvant therapy using biological drugs", coef: -0.21165742941491703, dataMin: 0.0, dataMax: 1.0, scalerScale: 1.0, scalerMin: 0.0, dataMean: 0.11802973977695168, category: "treatment", inputKey: "biological_therapy", groupName: "Biological therapy", oheSuffix: "adj" },
 ];
 
 export const MODEL_OFFSET = -1.812750340127578;
@@ -165,16 +167,24 @@ export function computeRisk(input: PatientInput) {
   for (const spec of FEATURES) {
     const rawValue = getRawValue(input, spec);
     const scaled = scaleFeature(rawValue, spec.scalerScale, spec.scalerMin);
-    const contribution = spec.coef * scaled;
-    linearPredictor += contribution;
+    const rawContribution = spec.coef * scaled;
+    linearPredictor += rawContribution;
+
+    // Displayed contributions are centred on the fitting-sample mean for
+    // diagnostic variables only, so the chart reads as "above/below the average
+    // model profile" rather than just "non-reference category active". Treatment
+    // variables keep the uncentred contribution. linearPredictor above always uses
+    // the uncentred value, so this choice never affects the computed risk.
+    const displayContribution =
+      spec.category === "diagnostic" ? spec.coef * (scaled - spec.dataMean) : rawContribution;
 
     const displayName = spec.groupName || spec.name;
     const existing = contributions.find((c) => c.name === displayName);
     if (existing) {
-      existing.contribution += contribution;
+      existing.contribution += displayContribution;
       existing.scaledValue = Math.max(existing.scaledValue, scaled);
     } else {
-      contributions.push({ name: displayName, coefficient: spec.coef, scaledValue: scaled, contribution });
+      contributions.push({ name: displayName, coefficient: spec.coef, scaledValue: scaled, contribution: displayContribution });
     }
   }
 

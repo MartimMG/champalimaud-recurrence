@@ -98,6 +98,30 @@ VIRTUAL_GROUPS: dict[str, dict] = {
 }
 
 
+# Canonical names (or, for grouped variables, group names) that describe a treatment
+# rather than a diagnostic/tumour/patient characteristic. Drives whether a feature's
+# displayed contribution is centred on its fitting-sample mean (see FeatureSpec.category
+# and computeRisk in write_ts): centring is applied only to diagnostic variables.
+TREATMENT_VARIABLES = {
+    "Radiotherapy (RT) performed",
+    "Radiotherapy on chest wall",
+    "Radiotherapy on supraclavicular area",
+    "Radiotherapy on internal mammary chain",
+    "State (if hormone therapy prescribed)",
+    "Treatment in association with chemotherapy",
+    "Chemotherapy performed",
+    "Adjuvant chemotherapy",
+    "Conventional RT fraction",
+    "Total administered dose",
+    "Boost dose administered",
+    "Biological therapy",
+}
+
+
+def category_for(name: str) -> str:
+    return "treatment" if name in TREATMENT_VARIABLES else "diagnostic"
+
+
 def ohe_suffix(group_name: str, column_name: str) -> str:
     prefix = group_name + "_"
     assert column_name.startswith(prefix), (group_name, column_name)
@@ -331,6 +355,13 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
     scaler_scale = np.asarray(scaler_state["scale_"]).reshape(-1)
     scaler_min = np.asarray(scaler_state["min_"]).reshape(-1)
 
+    # Fitting-sample mean of each model column, in the same (scaled) space computeRisk
+    # works in, used to centre diagnostic-variable contributions for display: c_j =
+    # coef_j * (x_j - mean_j). x_train_scaled is the training design matrix already run
+    # through the scaler, with columns in the same order as feature_names_in_.
+    x_train_scaled = bundle["x_train_scaled"]
+    column_means = x_train_scaled.mean()
+
     def row_for(name: str) -> dict[str, Any]:
         i = name_to_idx[name]
         scaler_idx = scaler_name_to_idx.get(name)
@@ -351,6 +382,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
             "dataMax": data_max_value,
             "scalerScale": scaler_scale_value,
             "scalerMin": scaler_min_value,
+            "dataMean": float(column_means[name]),
         }
 
     nonzero = {feature_names[i] for i in range(len(feature_names)) if abs(float(coefs_raw[i])) > 1e-12}
@@ -368,6 +400,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
             continue
         r = row_for(b)
         r["inputKey"] = slugify(b)
+        r["category"] = category_for(b)
         features.append(r)
         binary_switch.append({"key": r["inputKey"], "label": b})
         defaults[r["inputKey"]] = 1 if b in BINARY_DEFAULT_ONE else 0
@@ -377,6 +410,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
             continue
         r = row_for(c)
         r["inputKey"] = slugify(c)
+        r["category"] = category_for(c)
         features.append(r)
         continuous_inputs.append(
             {
@@ -407,6 +441,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
             r["inputKey"] = gkey
             r["groupName"] = group_name
             r["oheSuffix"] = ohe_suffix(group_name, col)
+            r["category"] = category_for(group_name)
             features.append(r)
 
         opts = build_ohe_ui_options(group_name, active_suffixes)
@@ -437,6 +472,7 @@ def build_model_data(bundle: dict[str, Any]) -> dict[str, Any]:
             # For a virtual group the "suffix" is the option value that turns this
             # column on, since the columns share no common name prefix.
             r["oheSuffix"] = value
+            r["category"] = category_for(group_name)
             features.append(r)
 
         ohe_ui.append(
@@ -507,6 +543,8 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("  dataMax: number;")
     lines.append("  scalerScale: number;")
     lines.append("  scalerMin: number;")
+    lines.append("  dataMean: number;")
+    lines.append("  category: \"diagnostic\" | \"treatment\";")
     lines.append("  inputKey: string;")
     lines.append("  groupName?: string;")
     lines.append("  oheSuffix?: string;")
@@ -521,6 +559,8 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
             f"dataMax: {fmt_number(f['dataMax'])}",
             f"scalerScale: {fmt_number(f['scalerScale'])}",
             f"scalerMin: {fmt_number(f['scalerMin'])}",
+            f"dataMean: {fmt_number(f['dataMean'])}",
+            f"category: {ts_string(f['category'])}",
             f"inputKey: {ts_string(f['inputKey'])}",
         ]
         if "groupName" in f:
@@ -641,16 +681,24 @@ def write_ts(data: dict[str, Any], output_path: Path) -> None:
     lines.append("  for (const spec of FEATURES) {")
     lines.append("    const rawValue = getRawValue(input, spec);")
     lines.append("    const scaled = scaleFeature(rawValue, spec.scalerScale, spec.scalerMin);")
-    lines.append("    const contribution = spec.coef * scaled;")
-    lines.append("    linearPredictor += contribution;")
+    lines.append("    const rawContribution = spec.coef * scaled;")
+    lines.append("    linearPredictor += rawContribution;")
+    lines.append("")
+    lines.append("    // Displayed contributions are centred on the fitting-sample mean for")
+    lines.append("    // diagnostic variables only, so the chart reads as \"above/below the average")
+    lines.append("    // model profile\" rather than just \"non-reference category active\". Treatment")
+    lines.append("    // variables keep the uncentred contribution. linearPredictor above always uses")
+    lines.append("    // the uncentred value, so this choice never affects the computed risk.")
+    lines.append("    const displayContribution =")
+    lines.append("      spec.category === \"diagnostic\" ? spec.coef * (scaled - spec.dataMean) : rawContribution;")
     lines.append("")
     lines.append("    const displayName = spec.groupName || spec.name;")
     lines.append("    const existing = contributions.find((c) => c.name === displayName);")
     lines.append("    if (existing) {")
-    lines.append("      existing.contribution += contribution;")
+    lines.append("      existing.contribution += displayContribution;")
     lines.append("      existing.scaledValue = Math.max(existing.scaledValue, scaled);")
     lines.append("    } else {")
-    lines.append("      contributions.push({ name: displayName, coefficient: spec.coef, scaledValue: scaled, contribution });")
+    lines.append("      contributions.push({ name: displayName, coefficient: spec.coef, scaledValue: scaled, contribution: displayContribution });")
     lines.append("    }")
     lines.append("  }")
     lines.append("")

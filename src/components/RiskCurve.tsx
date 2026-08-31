@@ -129,7 +129,7 @@ function RiskChartTooltip({
             {text}
           </span>
           <span className={`font-semibold ${valueClass}`}>
-            {map[key] != null ? `${map[key].toFixed(3)}%` : "—"}
+            {map[key] != null ? `${map[key].toFixed(2)}%` : "—"}
           </span>
         </div>
       ))}
