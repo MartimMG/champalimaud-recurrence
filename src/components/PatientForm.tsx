@@ -24,8 +24,9 @@ const VARIABLE_META: Record<string, { group: VariableGroup; section: string }> =
   oestrogen_receptor_status_at_cb: { group: "clinical", section: "Core biopsy findings" },
   isotype_at_cb: { group: "clinical", section: "Core biopsy findings" },
   // Treatment
-  radiotherapy_rt_performed: { group: "treatment", section: "Radiotherapy" },
+  radiotherapy_on_chest_wall: { group: "treatment", section: "Radiotherapy" },
   radiotherapy_on_supraclavicular_area: { group: "treatment", section: "Radiotherapy" },
+  total_administered_dose: { group: "treatment", section: "Radiotherapy" },
   biological_therapy: { group: "treatment", section: "Systemic therapy" },
   treatment_in_association_with_chemotherapy: { group: "treatment", section: "Systemic therapy" },
 };
@@ -79,9 +80,9 @@ function ContinuousField({ field, value, onChange }: ContinuousFieldProps) {
   };
 
   return (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium" htmlFor={field.key}>
-        {field.label}
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-1.5">
+      <Label className="text-sm font-normal leading-tight flex-1" htmlFor={field.key}>
+        {formatUiVariableLabel(field.label)}
       </Label>
       <Input
         id={field.key}
@@ -90,6 +91,7 @@ function ContinuousField({ field, value, onChange }: ContinuousFieldProps) {
         max={field.max}
         step="any"
         value={text}
+        className="h-8 w-20 shrink-0 text-right"
         onFocus={(e) => {
           if (e.currentTarget.value === "0") {
             setText("");

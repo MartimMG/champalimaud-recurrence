@@ -1,4 +1,4 @@
-import { BINARY_SWITCH_VARIABLES, OHE_UI_VARIABLES, type PatientInput } from "@/lib/coxModel";
+import { BINARY_SWITCH_VARIABLES, CONTINUOUS_INPUT_VARIABLES, OHE_UI_VARIABLES, type PatientInput } from "@/lib/coxModel";
 
 // Shared by PatientForm and VariableImportance. It has to be one function, not a copy in
 // each: getValueLabelForGroup below reverse-maps a display name back to a variable by
@@ -6,12 +6,15 @@ import { BINARY_SWITCH_VARIABLES, OHE_UI_VARIABLES, type PatientInput } from "@/
 // contribution chart's value chips into "N/A".
 export function formatUiVariableLabel(label: string): string {
   if (label === "Radiotherapy (RT) performed") return "Radiotherapy";
+  if (label === "Radiotherapy on chest wall") return "On chest wall";
+  if (label === "Radiotherapy on supraclavicular area") return "On supraclavicular area";
   if (label === "Treatment in association with chemotherapy") {
     return "Hormone therapy associated with chemotherapy protocol";
   }
   if (label === "N (Regional nodes affected)") return "Number of regional nodes affected";
   if (label === "Oestrogen receptor status at CB") return "Estrogen receptor status";
   if (label === "Her2 overexpression (with immunohystochemistry) at CB") return "HER2 overexpression (with immunohystochemistry)";
+  if (label === "Total administered dose") return "Total administered dose (Gy)";
   return label.replace(/ at CB$/, "");
 }
 
@@ -35,6 +38,11 @@ export function getValueLabelForGroup(displayName: string, input: PatientInput):
     const selected = String(input[ohe.key as keyof PatientInput]);
     const match = ohe.options.find((opt) => opt.value === selected);
     return match?.label ?? selected;
+  }
+
+  const continuous = CONTINUOUS_INPUT_VARIABLES.find((v) => formatUiVariableLabel(v.label) === displayName);
+  if (continuous) {
+    return String(input[continuous.key as keyof PatientInput]);
   }
 
   return "N/A";

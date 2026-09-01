@@ -181,7 +181,7 @@ const Landing = () => {
                   stays interpretable and reports calibrated absolute risk rather than a bare ranking.
                 </p>
                 <p>
-                  Only <strong>9 of the 30 candidate variables</strong> kept a non-zero coefficient. Treatment-related coefficients
+                  Only <strong>11 of the 29 candidate variables</strong> kept a non-zero coefficient. Treatment-related coefficients
                   in particular should not be read causally: treatment was assigned by clinicians who
                   already knew each patient&apos;s risk.
                 </p>
