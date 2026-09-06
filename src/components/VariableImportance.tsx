@@ -46,11 +46,14 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
   const items = contributions.map((c) => {
     const fullName = formatUiVariableLabel(c.name);
     const valueLabel = getValueLabelForGroup(fullName, input);
+    // Convert from the log-hazard-ratio scale to a % change in hazard, since Cox
+    // contributions are additive in log-HR but that isn't a percentage of anything.
+    const hazardPercentChange = (Math.exp(c.contribution) - 1) * 100;
     return {
       key: c.name,
       fullName,
       valueLabel,
-      contribution: +c.contribution.toFixed(4),
+      contribution: +hazardPercentChange.toFixed(2),
       direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
     };
   });
@@ -83,12 +86,12 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
           Variable Contributions to Risk
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          How each variable affects the patient&apos;s risk score.{" "}
+          How much each variable changes the patient&apos;s hazard, as a % change from baseline.{" "}
           <span className="text-destructive font-medium">Red</span> increases risk,{" "}
           <span className="text-accent-foreground font-medium" style={{ color: "hsl(var(--accent))" }}>
-            green
+            teal
           </span>{" "}
-          is protective.
+          decreases risk.
         </p>
       </CardHeader>
       <CardContent className="px-4 pb-4">
@@ -155,7 +158,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
                       style={{ left: `${valuePercent}%` }}
                     >
                       {item.contribution > 0 ? "+" : ""}
-                      {item.contribution.toFixed(4)} (Value: {item.valueLabel})
+                      {item.contribution.toFixed(1)}% (Value: {item.valueLabel})
                     </div>
                   </div>
                 </div>
@@ -173,13 +176,13 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
         <div
           className="sr-only"
           role="table"
-          aria-label="Variable contributions to the patient's risk score, ordered from highest to lowest impact"
+          aria-label="Variable contributions to the patient's hazard, ordered from highest to lowest impact"
         >
           <div role="rowgroup">
             <div role="row">
               <span role="columnheader">Variable</span>
               <span role="columnheader">Selected value</span>
-              <span role="columnheader">Contribution</span>
+              <span role="columnheader">Contribution (% change in hazard)</span>
               <span role="columnheader">Direction</span>
             </div>
           </div>
@@ -190,7 +193,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
                 <span role="cell">{item.valueLabel}</span>
                 <span role="cell">
                   {item.contribution > 0 ? "+" : ""}
-                  {item.contribution.toFixed(4)}
+                  {item.contribution.toFixed(2)}%
                 </span>
                 <span role="cell">{item.direction === "risk" ? "Increases risk" : "Decreases risk (protective)"}</span>
               </div>
