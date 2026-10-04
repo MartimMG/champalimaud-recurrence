@@ -17,43 +17,51 @@ function toPercent(value: number, domainMin: number, domainMax: number): number 
   return ((value - domainMin) / (domainMax - domainMin)) * 100;
 }
 
-function formatTick(value: number, range: number): string {
-  const decimals = range < 1 ? 2 : range < 10 ? 1 : 0;
-  const formatted = value.toFixed(decimals);
-  return formatted === `-${(0).toFixed(decimals)}` ? (0).toFixed(decimals) : formatted;
+function formatHr(hr: number): string {
+  return String(Number(hr.toPrecision(2)));
 }
 
-function niceStep(rawStep: number): number {
-  const exponent = Math.floor(Math.log10(rawStep));
-  const fraction = rawStep / 10 ** exponent;
-  const niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
-  return niceFraction * 10 ** exponent;
-}
+// Mantissas per decade, coarsest first. Every set contains 1, so HR = 1 is always a tick.
+const TICK_MANTISSAS = [
+  [1],
+  [1, 2, 5],
+  [1, 1.5, 2, 3, 5, 7],
+  [1, 1.1, 1.2, 1.3, 1.5, 1.7, 2, 2.5, 3, 4, 5, 6, 7, 8, 9],
+];
 
-// Builds ticks by stepping out from 0 in both directions, so 0 is always included
-// regardless of the data's actual min/max (unlike evenly dividing [domainMin, domainMax]).
-function computeTicks(domainMin: number, domainMax: number, targetCount: number): number[] {
+// Domain is in log-HR; returns tick positions in log-HR, picking the finest set of
+// HR values (0.5, 1, 2, ...) that still fits within targetCount.
+function computeLogTicks(domainMin: number, domainMax: number, targetCount: number): number[] {
   if (domainMin === domainMax) return [0];
-  const rawStep = (domainMax - domainMin) / Math.max(1, targetCount - 1);
-  const step = niceStep(rawStep);
-  const ticks = [0];
-  for (let v = step; v <= domainMax + 1e-9; v += step) ticks.push(+v.toFixed(10));
-  for (let v = -step; v >= domainMin - 1e-9; v -= step) ticks.push(+v.toFixed(10));
-  return ticks.sort((a, b) => a - b);
+  const firstDecade = Math.floor(domainMin / Math.LN10);
+  const lastDecade = Math.ceil(domainMax / Math.LN10);
+  let best: number[] = [0];
+  for (const mantissas of TICK_MANTISSAS) {
+    const ticks = new Set<number>();
+    for (let k = firstDecade; k <= lastDecade; k++) {
+      for (const m of mantissas) {
+        const logHr = Math.log(Number((m * 10 ** k).toPrecision(3)));
+        if (logHr >= domainMin - 1e-9 && logHr <= domainMax + 1e-9) ticks.add(logHr);
+      }
+    }
+    if (ticks.size > targetCount) break;
+    best = [...ticks].sort((a, b) => a - b);
+  }
+  return best;
 }
 
 const VariableImportance = ({ contributions, input }: VariableImportanceProps) => {
   const items = contributions.map((c) => {
     const fullName = formatUiVariableLabel(c.name);
     const valueLabel = getValueLabelForGroup(fullName, input);
-    // Convert from the log-hazard-ratio scale to a % change in hazard, since Cox
-    // contributions are additive in log-HR but that isn't a percentage of anything.
-    const hazardPercentChange = (Math.exp(c.contribution) - 1) * 100;
+    // Bars are plotted in log-HR (c.contribution) on a log axis labelled in HR, so
+    // HR 0.5 and HR 2 sit equally far from 1.
     return {
       key: c.name,
       fullName,
       valueLabel,
-      contribution: +hazardPercentChange.toFixed(2),
+      logHr: c.contribution,
+      hr: Math.exp(c.contribution),
       direction: c.contribution >= 0 ? ("risk" as const) : ("protective" as const),
     };
   });
@@ -62,19 +70,18 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
   // elements across renders — only their computed rank/position changes, which lets the
   // CSS "top" transition animate a smooth reorder instead of labels snapping instantly.
   const stableItems = [...items].sort((a, b) => a.key.localeCompare(b.key));
-  const rankedByValue = [...items].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const rankedByValue = [...items].sort((a, b) => Math.abs(b.logHr) - Math.abs(a.logHr));
   const rankByKey = new Map(rankedByValue.map((item, index) => [item.key, index]));
 
-  const rawValues = items.map((d) => d.contribution);
+  const rawValues = items.map((d) => d.logHr);
   const rawMin = Math.min(0, ...rawValues);
   const rawMax = Math.max(0, ...rawValues);
   const range = rawMax - rawMin || 1;
   const pad = range * 0.1;
   const domainMin = rawMin < 0 ? rawMin - pad : 0;
   const domainMax = rawMax > 0 ? rawMax + pad : 0;
-  const domainRange = domainMax - domainMin || 1;
 
-  const ticks = computeTicks(domainMin, domainMax, TICK_COUNT);
+  const ticks = computeLogTicks(domainMin, domainMax, TICK_COUNT);
   const zeroPercent = toPercent(0, domainMin, domainMax);
 
   const rowsHeight = items.length * ROW_HEIGHT;
@@ -86,7 +93,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
           Variable Contributions to Risk
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          How much each variable changes the patient&apos;s hazard, as a % change from baseline.{" "}
+          Hazard ratio for each variable (log scale).{" "}
           <span className="text-destructive font-medium">Red</span> increases risk,{" "}
           <span className="text-accent-foreground font-medium" style={{ color: "hsl(var(--accent))" }}>
             teal
@@ -98,7 +105,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
         {/* Purely decorative — the actual data is exposed to assistive tech via the
             sr-only table below, so screen readers skip this whole visual chart. */}
         <div aria-hidden="true">
-          <p className="mb-1 text-right text-xs text-muted-foreground">%</p>
+          <p className="mb-1 text-right text-xs text-muted-foreground">Hazard ratio</p>
 
           {/* Axis */}
           <div className="relative mb-1 h-5 text-[11px] text-muted-foreground" style={{ marginLeft: LABEL_WIDTH }}>
@@ -108,7 +115,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
                 className="absolute -translate-x-1/2 tabular-nums"
                 style={{ left: `${toPercent(t, domainMin, domainMax)}%` }}
               >
-                {formatTick(t, domainRange)}
+                {formatHr(Math.exp(t))}
               </span>
             ))}
           </div>
@@ -127,7 +134,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
 
             {stableItems.map((item) => {
               const rank = rankByKey.get(item.key) ?? 0;
-              const valuePercent = toPercent(item.contribution, domainMin, domainMax);
+              const valuePercent = toPercent(item.logHr, domainMin, domainMax);
               const barLeft = Math.min(valuePercent, zeroPercent);
               const barWidth = Math.abs(valuePercent - zeroPercent);
               return (
@@ -157,8 +164,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
                       className="pointer-events-none absolute -top-1 z-20 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground opacity-0 shadow-md transition-opacity duration-500 group-hover:opacity-100"
                       style={{ left: `${valuePercent}%` }}
                     >
-                      {item.contribution > 0 ? "+" : ""}
-                      {item.contribution.toFixed(1)}% (Value: {item.valueLabel})
+                      HR {item.hr.toFixed(2)} (Value: {item.valueLabel})
                     </div>
                   </div>
                 </div>
@@ -182,7 +188,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
             <div role="row">
               <span role="columnheader">Variable</span>
               <span role="columnheader">Selected value</span>
-              <span role="columnheader">Contribution (% change in hazard)</span>
+              <span role="columnheader">Hazard ratio</span>
               <span role="columnheader">Direction</span>
             </div>
           </div>
@@ -191,10 +197,7 @@ const VariableImportance = ({ contributions, input }: VariableImportanceProps) =
               <div role="row" key={item.key}>
                 <span role="rowheader">{item.fullName}</span>
                 <span role="cell">{item.valueLabel}</span>
-                <span role="cell">
-                  {item.contribution > 0 ? "+" : ""}
-                  {item.contribution.toFixed(2)}%
-                </span>
+                <span role="cell">{item.hr.toFixed(2)}</span>
                 <span role="cell">{item.direction === "risk" ? "Increases risk" : "Decreases risk (protective)"}</span>
               </div>
             ))}
