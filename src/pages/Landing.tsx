@@ -182,7 +182,7 @@ const Landing = () => {
                 </p>
                 <p>
                   Only <strong>11 of the 29 candidate variables</strong> kept a non-zero coefficient. Treatment-related coefficients
-                  in particular should not be read causally: treatment was assigned by clinicians who
+                  in particular should not be read causally: treatment was assig ned by clinicians who
                   already knew each patient&apos;s risk.
                 </p>
               </Section>
@@ -197,7 +197,7 @@ const Landing = () => {
 
               <Section title="Risk zones" subtitle="four zones, three thresholds">
                 <p>
-                  Predicted risk is also translated into four zones — low, mid-low, mid-high and high —
+                  Predicted risk is also translated into four zones: low, mid-low, mid-high and high,
                   using thresholds set so the high-risk zone captures roughly the riskiest{" "}
                   <strong>15% of the cohort</strong>. This cutoff is a capacity choice, not a clinical
                   optimum: it does not change the model or any individual&apos;s predicted risk, only where
